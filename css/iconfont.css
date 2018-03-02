@@ -1,0 +1,83 @@
+@font-face {
+    font-family: Muiicons;
+    font-weight: normal;
+    font-style: normal;
+    src: url('../fonts/iconfont.ttf?t=1490697495427') format('truetype');
+}
+
+.iconfont {
+    font-family: "Muiicons";
+    font-size: 16px;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-weixiu:before {
+    content: "\e61a";
+
+}
+
+.icon-chou:before {
+    content: "\e606";
+}
+
+.icon-register:before {
+    content: "\e641";
+}
+
+.icon-check:before {
+    content: "\e752";
+}
+
+.icon-show:before {
+    content: "\e603";
+}
+
+.icon-last:before {
+    content: "\e654";
+}
+
+.icon-scan:before {
+    content: "\e7dd";
+}
+
+.icon-lease-resv-2home:before {
+    content: "\e614";
+}
+
+.icon-jiancha:before {
+    content: "\e6a6";
+}
+
+.icon-book:before {
+    content: "\e66d";
+}
+
+.icon-view-1-copy:before {
+    content: "\e616";
+}
+
+.icon-ji:before {
+    content: "\e69e";
+}
+
+.icon-jianchabiaodan:before {
+    content: "\e709";
+}
+
+.icon-my:before {
+    content: "\e615";
+}
+
+.icon-ibeacon:before {
+    content: "\e628";
+}
+
+.icon-tianjia:before {
+    content: "\e66e";
+}
+
+
+
+

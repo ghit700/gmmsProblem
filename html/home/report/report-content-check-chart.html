@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+    <style>
+        body {
+
+        }
+    </style>
+</head>
+<body>
+<div id="chart" ></div>
+<div id="chartText" style="text-align:center;padding: 10px;width: 100%"></div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/echarts.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        $('#chart').css('height', api.frameHeight / 2 + 100);
+        $('#chart').css('width', api.frameWidth);
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '载入中...',
+            modal: true
+        });
+        post("/modules/mobile/task/fire-task!queryItemCheckStatus.action", {
+            itemName: api.pageParam.itemName,
+            taskIds: api.pageParam.taskIds
+        }, function (ret) {
+            var option = {
+                series: {
+                    type: 'pie',
+                    radius: '55%',
+                    center: ['50%', '60%'],
+                    label: {
+                        normal: {
+                            position: 'inner'
+                        }
+                    }
+                }
+            };
+            var data = [];
+            var i = 0;
+            var textHtml = "";
+            textHtml += "<div>共有" + (ret.nonCheckCount+ret.normalCount+ret.problemCount) + "个功能位置</div>";
+            if (ret.nonCheckCount != 0) {
+                data[i++] = {
+                    value: ret.nonCheckCount,
+                    name: '未检查\n\n' + Number(ret.nonCheckCount / (ret.normalCount + ret.nonCheckCount + ret.problemCount) * 100).toFixed(2) + "%"
+                };
+                textHtml += "<div>有" + ret.nonCheckCount + "个功能位置未检查</div>";
+            }
+            if (ret.normalCount != 0) {
+                data[i++] = {
+                    value: ret.normalCount,
+                    name: '正常\n\n' + Number(ret.normalCount / (ret.normalCount + ret.nonCheckCount + ret.problemCount) * 100).toFixed(2) + "%"
+                };
+                textHtml += "<div>有" + ret.normalCount + "个功能位置正常</div>";
+            }
+
+            if (ret.problemCount != 0) {
+                data[i] = {
+                    value: ret.problemCount,
+                    name: '故障\n\n' + Number(ret.problemCount / (ret.normalCount + ret.nonCheckCount + ret.problemCount) * 100).toFixed(2) + "%"
+                };
+                textHtml += "<div>检查发现有" + ret.problemCount + "个故障</div>";
+            }
+            $('#chartText').html(textHtml);
+            option.series.data = data;
+            var chart = echarts.init(document.getElementById('chart'));
+            chart.setOption(option, true);
+            chart.on('click', function (params) {
+                if (params.data.name.indexOf('正常') >= 0) {
+                    api.openWin({
+                        name: 'report-content-check-dp-header',
+                        url: './report-content-check-dp-header.html',
+                        pageParam: {
+                            taskIds: api.pageParam.taskIds,
+                            itemName: api.pageParam.itemName,
+                            name: api.pageParam.itemName,
+                            type: api.pageParam.type,
+                            isCheck: true
+                        }
+                    });
+                } else if (params.data.name.indexOf('未检查') >= 0) {
+                    api.openWin({
+                        name: 'report-content-check-dp-header',
+                        url: './report-content-check-dp-header.html',
+                        pageParam: {
+                            taskIds: api.pageParam.taskIds,
+                            itemName: api.pageParam.itemName,
+                            name: api.pageParam.itemName,
+                            type: api.pageParam.type,
+                            isCheck: false
+                        }
+                    });
+                } else if (params.data.name.indexOf('故障') >= 0) {
+                    var title = api.pageParam.itemName;
+                    switch (api.pageParam.type) {
+                        case 1 :
+                            title += '(年检查)';
+                            break;
+                        case 2 :
+                            title += '(季检查)';
+                            break;
+                        case 3 :
+                            title += '(月检查)';
+                            break;
+                        case 4 :
+                            title += '(周检查)';
+                            break;
+                        case 5 :
+                            title += '(日检查)';
+                            break;
+                        case 0 :
+                            title += '(夜间检查)';
+                            break;
+                    }
+                    fnHeaderWin(title, 'report-problem-repairt-list', '/report/report-problem-repairt-list.html', {
+                        taskIds: api.pageParam.taskIds,
+                        itemName: api.pageParam.itemName,
+                    });
+                }
+            });
+        });
+    };
+</script>
+</html>

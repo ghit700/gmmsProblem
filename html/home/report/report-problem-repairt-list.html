@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+    </style>
+</head>
+<body>
+<div id="content">
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/cache.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    var lstProblems;
+    apiready = function () {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '获取数据中...',
+            modal: true
+        });
+        post("/modules/mobile/task/fire-task!queryProblemDetailList.action", {
+            taskIds: api.pageParam.taskIds,
+            itemName: api.pageParam.itemName,
+        }, function (ret) {
+            lstProblems = ret.data;
+            showProblemListView();
+        });
+    };
+    function showProblemListView() {
+        var html = "";
+        $.each(lstProblems, function (i, data) {
+            var imgHtml = "";
+            var lstPhotos = data.lstPhotos;
+            if (lstPhotos != undefined && lstPhotos.length > 0) {
+                $.each(lstPhotos, function (i, photo) {
+                    lstPhotos[i].url = $api.getStorage('gmms_url') + photo.url;
+                });
+                imgCache('img' + data.dpId + i, lstPhotos, i);
+                imgHtml = '<div id="img' + data.dpId + i + '" class="mui-card-header mui-card-media" style="height:40vw;background-image:url(../../../image/imgloading.jpg)"></div>';
+            }
+            var click = "";
+            var statusHtml = "";
+            if (data.status == '已处理') {
+                statusHtml = '<div  ><span class="mui-pull-right" style="padding-top:10px;padding-bottom:10px;color: #2ac845">已处理</span></div>';
+            } else {
+                statusHtml = '<div  ><span class="mui-pull-right" style="padding-top:10px;padding-bottom:10px;color: #ff5053">未处理</span></div>';
+            }
+            html += '<div class="mui-card" id="' + data.id + '" >' + imgHtml + '<div onclick="' + click + '"><div class="mui-card-content" >' + '<div class="mui-card-content-inner">' + '<span style="font-size: 16px">' + data.itemName + '</span>' + '<p  style="margin-top:10px;color:black">桩号：' + fnFormatMile(data.mile) + '</p><p  style="color:black">类型：' + data.name + '</p><p  style="color:black">问题描述：' + data.desc + '</p></div></div>' + '<div class="mui-card-footer" ><span class="mui-card-link">登记时间：' + data.time + '</span>' + statusHtml + '</div></div></div>';
+        });
+        $('#content').html(html);
+    }
+
+    function fnShowImg(position) {
+        api.openWin({
+            name: 'report-photo-text',
+            url: './report-photo-text.html',
+            delay: 300,
+            pageParam: {
+                lstPhotos: lstProblems[position].lstPhotos
+            }
+        });
+    }
+
+    function imgCache(id, url, position) {
+        cacheImg(url[0].url, function (imgPath) {
+            $('#' + id).css('background-image', 'url(' + imgPath + ")");
+            url[0].url = imgPath;
+            $('#' + id).on('click', function (e) {
+                fnShowImg(position);
+            });
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../../css/mui.min.css"/>
+    <style>
+        body {
+            background-color: white
+        }
+
+        .mui-header {
+            background-color: #1081DA
+        }
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header">
+    <h1 class="mui-title" style="color: white">选择系统</h1>
+</header>
+<div class="mui-content" id="item-selector">
+    <ul class="mui-table-view mui-grid-view mui-grid-9" style="background-color: white">
+        <item v-for="item in lstItems" :model="item"></item>
+    </ul>
+    <!--<ul class="mui-table-view mui-grid-view mui-grid-9" style="background-color: white">-->
+    <!--<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3 ">-->
+    <!--<div class="mui-media-body" style="font-size: 10px;">Home</div>-->
+    <!--</li>-->
+    <!--<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">-->
+    <!--<div class="mui-media-body" style="font-size: 10px;">Home</div>-->
+    <!--</li>-->
+    <!--<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">-->
+    <!--<div class="mui-media-body" style="font-size: 10px;">Home</div>-->
+    <!--</li>-->
+    <!--<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">-->
+    <!--<div class="mui-media-body" style="font-size: 10px;">Home</div>-->
+    <!--</li>-->
+    <!--<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">-->
+    <!--<div class="mui-media-body" style="font-size: 10px;">Home</div>-->
+    <!--</li>-->
+    <!--<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">-->
+    <!--<div class="mui-media-body" style="font-size: 10px;">Home</div>-->
+    <!--</li>-->
+    <!--<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">-->
+    <!--<div class="mui-media-body" style="font-size: 10px;">Home</div>-->
+    <!--</li>-->
+    <!--</ul>-->
+</div>
+</div>
+</body>
+<script type="text/javascript" src="../../../../script/api.js"></script>
+<script type="text/javascript" src="../../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../../script/common.js"></script>
+<script type="text/javascript" src="../../../../script/http.js"></script>
+<script type="text/x-template" id="item-template">
+    <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3 " @click="toggle">
+        <div class="mui-media-body" style="font-size: 10px;"> {{ model.name }}</div>
+    </li>
+    <ul class="mui-table-view mui-grid-view mui-grid-9" style="background-color: white" v-show="open"
+        v-if="isFolder">
+        <item
+                v-for="(model, index) in model.children"
+                :key="index"
+                :model="model">
+        </item>
+    </ul>
+    </ul>
+
+    <!--<li>-->
+    <!--<div @click="toggle">-->
+    <!--{{ model.name }}-->
+    <!--<span v-if="isFolder">[{{ open ? '-' : '+' }}]</span>-->
+    <!--</div>-->
+    <!--<ul v-show="open" v-if="isFolder">-->
+    <!--<item-->
+    <!--v-for="(model, index) in model.children"-->
+    <!--:key="index"-->
+    <!--:model="model">-->
+    <!--</item>-->
+    <!--</ul>-->
+    <!--</li>-->
+</script>
+<script type="text/javascript">
+    var itemSelectorModel;
+    apiready = function () {
+        initHeader();
+        Vue.component('item', {
+            template: '#item-template',
+            props: {
+                model: Object
+            },
+            data: function () {
+                return {
+                    open: false,
+                    isSelected: false
+                }
+            },
+            computed: {
+                isFolder: function () {
+                    return this.model.children &&
+                        this.model.children.length
+                },
+            },
+            methods: {
+                toggle: function () {
+                    this.isSelected = !this.isSelected
+                    if (this.isFolder) {
+                        this.open = !this.open
+                    }
+                    api.execScript({
+                        name: 'problem-register-win',
+                        frameName: 'problem-register',
+                        script: 'fnsetItem("' + this.model.treeName + '",' + this.isSelected + ');'
+                    });
+                    if (!this.isFolder && this.isSelected) {
+                        Vue.set(this.model, 'children', []);
+                        this.queryItemByItemParent(this.model.id);
+                    }
+
+                },
+                queryItemByItemParent: function (itemId) {
+                    var model1 = this.model;
+                    this.open = true;
+                    post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", {
+                        itemParentId: itemId
+                    }, function (ret) {
+                        $.each(ret.data, function (i, item) {
+                            model1.children.push(item);
+                        });
+                    });
+
+                }
+            }
+        });
+        itemSelectorModel = new Vue({
+            el: '#item-selector',
+            data: {
+                lstItems: []
+            }
+        });
+    };
+    function loadZoneId(zondId) {
+        post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", {
+            zoneId: zondId
+        }, function (ret) {
+            $.each(ret.data, function (i, item) {
+                itemSelectorModel.lstItems.push(item);
+            });
+        });
+    }
+</script>
+</html>

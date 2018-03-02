@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="../../../css/aui.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/iconfont.css"/>
+    <style type="text/css">
+        html, body {
+            min-height: 100%;
+            background-color: #efeff4;
+        }
+
+        .mui-header {
+            background-color: #1081DA
+        }
+
+        .mui-header img {
+            height: 20px;
+            width: 20px;
+            margin-top: 12px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header">
+    <a class="mui-action-menu mui-pull-left " onclick="closeWin()"><img
+            src="../../../image/back_btn.png"/></a>
+    <h1 class="mui-title" style="color: white">任务工单</h1>
+</header>
+<h5 id="type" style="margin-top: 10px;margin-left: 10px">任务类型</h5>
+<section class="aui-grid">
+    <div class="aui-row">
+        <div class="aui-col-xs-4" onclick="fnOpenWin(5)">
+            <span style="color: #3498db" class="mui-icon    icon-jiancha"></span>
+            <div class="mui-media-body">
+                日检查
+            </div>
+        </div>
+        <div class="aui-col-xs-4" onclick="fnOpenWin(4)">
+            <span style="color: #9b59b6" class="mui-icon   icon-book"></span>
+            <div class="mui-media-body">
+                周检查
+            </div>
+        </div>
+        <div class="aui-col-xs-4" onclick="fnOpenWin(3)">
+            <span style="color: #f1c40f" class="mui-icon   icon-lease-resv-2home"></span>
+            <div class="mui-media-body">
+                月检查
+            </div>
+        </div>
+        <div class="aui-col-xs-4" onclick="fnOpenWin(2)">
+            <span style="color: #e67e22" class="mui-icon   icon-ji"></span>
+            <div class="mui-media-body">
+                季检查
+            </div>
+        </div>
+        <div class="aui-col-xs-4" onclick="fnOpenWin(1)">
+            <span style="color: #e74c3c" class="mui-icon   icon-jianchabiaodan"></span>
+            <div class="mui-media-body">
+                年检查
+            </div>
+        </div>
+        <div class="aui-col-xs-4" onclick="fnOpenWin(0)">
+            <span style="color: #1abc9c" class="mui-icon   icon-view-1-copy"></span>
+            <div class="mui-media-body">
+                夜间检查
+            </div>
+        </div>
+    </div>
+</section>
+<h5 style="margin-top: 10px;margin-left: 10px">提示：开展检查工作前，请在有网络的环境下，先下载任务工单。</h5>
+
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript" src="../../../script/scan.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript">
+    mui.init();
+    apiready = function () {
+        fnInitDB();
+        initHeader();
+        $('#type').css('margin-top', headerHeight + 10);
+        //用户显示信息
+        var user = $api.getStorage('user');
+        $('#user_name').html(user.name);
+        api.parseTapmode();
+    };
+
+    /**
+     * 九宫格打开窗口事件
+     */
+    function fnOpenWin(type) {
+//        1.年 2.季 3.月 4.周 5.天
+        api.openWin({
+            name: 'check-zone-header',
+            url: './check-zone-header.html',
+            bounces: false,
+            vScrollBarEnabled: false,
+            pageParam: {
+                "type": type,
+            }
+        });
+    }
+    function fnScanWin() {
+        fnScan("lyxf-info", "", "widget://html/deviceplace/device-place-body.html");
+    }
+
+</script>
+</html>

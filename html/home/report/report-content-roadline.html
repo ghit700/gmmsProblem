@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .mui-scroll-container img {
+            width: 18px;
+            height: 18px;
+            margin-left: 2px;
+        }
+
+        .mui-scroll-container {
+            position: relative;
+            border-bottom: 1px #dedede solid;
+            border-top: 1px #dedede solid;
+            background-color: white;
+            margin-top: 5px;
+
+            padding-bottom: 10px;
+        }
+
+        .mui-scroll-container:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-scroll-container div {
+            position: absolute;
+            right: 15px;
+            border-radius: 5px;
+            text-align: center;
+            padding: 2px;
+            top: 50%;
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            -o-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+
+        .mui-scroll-container h4 {
+            font-size: 20px;
+            padding-left: 10px;
+            padding-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="mui-content"></div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    var taskIds;
+    apiready = function () {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '获取数据中...',
+            modal: true
+        });
+        if (api.pageParam.request != 'check') {
+            post("/modules/mobile/task/fire-task!queryDevicePlaceCheckSituationByRoadline.action", {
+                taskIds: api.pageParam.taskIds,
+                type: api.pageParam.type,
+                zoneId: api.pageParam.zoneId,
+                request: api.pageParam.request,
+            }, function (ret) {
+                var html = "";
+                if (ret.data.length > 0) {
+                    taskIds = ret.taskIds;
+                    $.each(ret.data, function (i, roadLine) {
+                        var rateHtml = roadLine.coverageRate + "%";
+                        if (api.pageParam.request == 'problem') {
+                            rateHtml = roadLine.nonCheckCount + "/" + roadLine.count;
+                        }
+                        html += '<div class="mui-scroll-container" tapmode="active" onclick="fnItemList(' + roadLine.id +',\''+roadLine.name+'\')"><h4 style=" font-size:16px;font-weight:normal">' + roadLine.name + '<span style="position: absolute;right: 10px;">' +rateHtml + '</span></h4> </div>';
+                    });
+                }
+                $('.mui-content').html(html);
+            });
+        } else {
+            post("/modules/mobile/task/fire-task!queryNonCheckOrderByRoadLine.action", {
+                time: api.pageParam.time,
+                zoneId: api.pageParam.zoneId,
+            }, function (ret) {
+                var html = "";
+                if (ret.data.length > 0) {
+                    $.each(ret.data, function (i, roadLine) {
+                        html += '<div class="mui-scroll-container" tapmode="active" onclick="fnItemList(' + roadLine.id + ',\''+roadLine.name+'\')"><h4 style=" font-size:16px;font-weight:normal">' + roadLine.name + '<span style="position: absolute;right: 10px;">' + roadLine.count + '个</span></h4> </div>';
+                    });
+                }
+                $('.mui-content').html(html);
+            });
+
+        }
+    };
+    function fnItemList(roadId,name) {
+        var title = name;
+        switch (api.pageParam.type) {
+            case 1 :
+                title += '(年检查)';
+                break;
+            case 2 :
+                title += '(季检查)';
+                break;
+            case 3 :
+                title += '(月检查)';
+                break;
+            case 4 :
+                title += '(周检查)';
+                break;
+            case 5 :
+                title += '(日检查)';
+                break;
+            case 0 :
+                title += '(夜间检查)';
+                break;
+        }
+        fnHeaderWin(title, 'report-content-item', '/home/report/report-content-item.html', {
+            dpIds: api.pageParam.dpIds,
+            time: api.pageParam.time,
+            roadId: roadId,
+            type: api.pageParam.type,
+            year: api.pageParam.year,
+            month: api.pageParam.month,
+            taskIds: api.pageParam.taskIds,
+            zoneId: api.pageParam.zoneId,
+            request: api.pageParam.request
+        });
+    }
+</script>
+</html>

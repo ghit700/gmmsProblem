@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        html, body {
+            min-height: 100%;
+        }
+
+        .link {
+            color: black
+        }
+
+        .mui-card-footer.item:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-text {
+            font-size: 14px;
+            color: #8f8f94;
+            display: inline-block;
+            width: 55%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            -o-text-overflow: ellipsis;
+        }
+
+        .mui-footer button {
+            font-size: 12px;
+            padding: 5px 5px;
+            height: 25px;
+        }
+
+        .mui-footer label {
+            font-size: 12px;
+            margin-left: 5px;
+            margin-top: 5px;
+            color: #8f8f94
+        }
+
+        .mui-footer {
+            min-height: 30px;
+            display: flex;
+            -webkit-box-pack: justify;
+            justify-content: space-between;
+            -webkit-box-align: center;
+            padding: 0px 0px;
+            margin-bottom: 5px
+        }
+
+        .mui-bottom-content {
+            border-bottom: 1px #dedede solid
+        }
+
+        .li-time-label {
+            float: left;
+            font-size: 14px;
+            width: 27%;
+            color: #8f8f94
+        }
+
+        .li-result-label {
+            float: left;
+            font-size: 14px;
+            text-align: end;
+            width: 72%;
+        }
+    </style>
+</head>
+<body>
+<div class="content">
+
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript">
+    var gmms_url = $api.getStorage('gmms_url');
+    apiready = function () {
+        fnInitDB();
+        loadTaskItems();
+        fnInitPull();
+
+    };
+    var lstTaskItems = new Array;
+    //加载维护项目
+    function loadTaskItems() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '数据加载中...',
+            modal: false
+        });
+        if(api.pageParam.type=='report'){
+            post("/modules/mobile/task/fire-task!queryCheckTaskItemValuesLyjd.action", {
+                "taskId": api.pageParam.taskId,
+                "dpId": api.pageParam.devicePlaceId,
+            }, function (ret) {
+                loadData(ret);
+            });
+        }else{
+            var json = queryCheckTaskItemValues({
+                "taskDetailId": api.pageParam.taskId,
+                "devicePlaceId": api.pageParam.devicePlaceId,
+            });
+            loadData(json);
+            api.hideProgress();
+
+        }
+    }
+    function loadData(json){
+        if (json.success) {
+            lstTaskItems = json.data;
+            sort(lstTaskItems);
+            var htmls = '';
+            //是否存在异常事件
+            for (var i = 0; i < json.data.length; i++) {
+                var devicePlaceId = api.pageParam.devicePlaceId;
+                if (json.data[i].devicePlaceId != undefined) {
+                    devicePlaceId = json.data[i].devicePlaceId;
+                }
+                var resultHtml = "";
+                if (json.data[i].result != "进行检查") {
+                    if (json.data[i].result != undefined) {
+                        var resultArray = json.data[i].result.split(":");
+                    } else {
+                        var resultArray = new Array;
+                    }
+                    var timeArray = json.data[i].time.split(";");
+                    for (var j = 0; j < resultArray.length; j++) {
+                        var result = resultArray[j];
+                        if (result.indexOf("!") >= 0) {
+                            result = result.replace("!", "，");
+                        }
+                        resultHtml += ' <li id="result'+json.data[i].id+'" class="mui-table-view-cell test"> <label  class="li-time-label">' + timeArray[j] + '</label><label id="remark'+json.data[i].id+'" class="li-result-label">' + result + '</label></li>';
+                    }
+                }
+                var buttonText = "";
+                if (json.data[i].result == '进行检查') {
+                    buttonText = "检查情况描述";
+                } else {
+                    buttonText = "查看";
+                }
+
+                var nameHtml = "";
+                if (json.data[i].resultType > 2) {
+                    nameHtml = '<span style="color:red"> *</span>';
+                }
+                htmls += '<ul id="' + json.data[i].id + '" class="mui-table-view" style="margin: 5px;"><li class="mui-table-view-cell"> <span id="span' + json.data[i].id + '"  style="line-height:29px;height:29px;font-size:15px;color:black;"><strong>' + json.data[i].name + '</strong></span>' + nameHtml + '<button id="btn' + json.data[i].id + '" type="button"style="padding: 4px 15px" onclick="checks(\'' + json.data[i].name + '\',' + json.data[i].taskItemId + ',' + json.data[i].resultType + ',' + json.data[i].insepctionItemId +  ',' + json.data[i].devicePlaceId+','+json.data[i].id+')" class="mui-pull-right">' + buttonText + '</button></li>' + resultHtml + '</ul>';
+            }
+            $('.content').html(htmls);
+        }
+    }
+
+    //对检查项目进行排序，数值和多项数值的要排前面
+    function sort(lstTaskItems) {
+        for (var i = 0; i < lstTaskItems.length; i++) {
+            for (var j = lstTaskItems.length - 1; j > i; j--) {
+                if (lstTaskItems[j].resultType > lstTaskItems[j - 1].resultType) {
+                    var temp = lstTaskItems[j];
+                    lstTaskItems[j] = lstTaskItems[j - 1];
+                    lstTaskItems[j - 1] = temp;
+                }
+            }
+        }
+    }
+
+    var taskItemId;
+    //编辑的维护项目
+    function checks(_name, _taskItemId, _resultTypeId, _inspectionItemId,_devicePlaceId,id) {
+        taskItemId = id;
+        api.openWin({
+            name: 'check-tack-detail-register-top',
+            url: './check-tack-detail-register-top.html',
+            pageParam: {
+                "name": _name,
+                "taskItemId": _taskItemId,
+                "resultTypeId": _resultTypeId,
+                "inspectionItemId": _inspectionItemId,
+                "componentId": api.pageParam.componentId,
+                "taskDetailId": api.pageParam.taskId,
+                "devicePlaceId": _devicePlaceId,
+                type: api.pageParam.type,
+                itemName: api.pageParam.itemName,
+                status: api.pageParam.status
+            },
+            rect: {
+                x: 0,
+                y: 0,
+                w: api.winWidth,
+                h: api.winHeight - api.pageParam.bottomHeight
+            },
+            bounces: false,
+            vScrollBarEnabled: false,
+            hScrollBarEnabled: false,
+        });
+    }
+
+    //刷新维护项目
+    function flushUI(remark, isNormal) {
+        if (!isNormal || isNormalItems()) {
+            showDangerBtn();
+            if (!isNormal) {
+                $.each(lstTaskItems, function (i, item) {
+                    if (item.id == taskItemId) {
+                        lstTaskItems[i].isNormal = isNormal;
+                    }
+                });
+            }
+        }
+        $('#result'+taskItemId).remove();
+        $('#' + taskItemId).append('<li id="result'+taskItemId+'" class="mui-table-view-cell test"> <label class="li-time-label">' + formatDate() + '</label><label id="remark'+taskItemId+'" class="li-result-label">' + remark + '</label></li>');
+
+
+        $('#btn' + taskItemId).html('查看');
+
+        api.closeWin({
+            name: 'check-tack-detail-register-top'
+        });
+    }
+
+    //当前功能位置时候含有异常项
+    function isNormalItems() {
+        for (var i = 0; i < lstTaskItems.length; i++) {
+            if (lstTaskItems[i].isNormal == false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function formatDate() {
+        var date = new Date();
+        date.setTime($api.getStorage('systemTime'));
+        var seperator1 = "-";
+        var month = date.getMonth() + 1;
+        var strDate = date.getDate();
+        if (month >= 1 && month <= 9) {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+            strDate = "0" + strDate;
+        }
+        var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate;
+        return currentdate;
+    }
+
+    //刷新所有
+    function fnInitPull() {
+        api.setRefreshHeaderInfo({
+            visible: true,
+            bgColor: '#f0f0f0',
+            textColor: '#888',
+            textDown: '下拉刷新',
+            textUp: '松开刷新',
+            showTime: false
+        }, function (ret, err) {
+            loadTaskItems();
+            api.refreshHeaderLoadDone();
+        });
+    }
+
+
+
+    //显示异常事件按钮
+    function showDangerBtn() {
+        api.execScript({
+            frameName: 'check-task-detail-place',
+            script: 'showDangerBtn();'
+        });
+    }
+
+    function uploadTaskItem() {
+        for (var i = 0; i < lstTaskItems.length; i++) {
+            var item = lstTaskItems[i];
+            if ((item.resultType == 3 || item.resultType == 4) && $('#remark' + item.id).html() == null) {
+                api.toast({
+                    msg: '请填表。',
+                    duration: 2000,
+                    location: 'bottom'
+                });
+                return;
+            }
+        }
+        //在名为winName的window中执行jsfun脚本
+        api.execScript({
+            name: api.winName,
+            script: 'uploadTaskItem();'
+        });
+
+    }
+</script>
+</html>

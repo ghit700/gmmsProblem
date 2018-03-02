@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .my-left {
+            border-radius: 50%;
+            color: #fff;
+            /* Firefox */
+            display: -moz-box;
+            -moz-box-pack: center;
+            -moz-box-align: center;
+            /* Safari、Opera 以及 Chrome */
+            display: -webkit-box;
+            -webkit-box-pack: center;
+            -webkit-box-align: center;
+            height: 60px;
+            width: 60px;
+            text-align: center;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+<ul id="todoList" class="mui-table-view" v-cloak>
+    <li class="mui-table-view-cell">
+        <a onclick="openTodo('problem')">
+            <div class="mui-media-object mui-pull-left">
+                <div class="my-left" style="background-color: #8f45ae">
+                    <span v-if="problemCount>0" style="position: absolute;top: 10px;left: 56px"
+                          class="mui-badge mui-badge-danger">{{problemCount}}</span>
+                    <div style="white-space: normal;width: 40px;">故障</div>
+                </div>
+            </div>
+            <div class="mui-media-body" style="color: #333;padding-left: 15px">
+                故障处置
+                <p style="margin-top: 10px;" class='mui-ellipsis'>{{problemContent}}</p>
+                <p style="position:absolute;right:5px;top: 10px;font-size: 16px">{{problemTime}}</p>
+            </div>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a onclick="openTodo('todo')">
+            <div class="mui-media-object mui-pull-left">
+                <div class="my-left" style="background-color: #2b81ba">
+                   <span v-if="todoCount>0" style="position: absolute;top: 10px;left: 56px"
+                         class="mui-badge mui-badge-danger">{{todoCount}}</span>
+                    <div style="white-space: normal;width: 40px;">审批</div>
+                </div>
+            </div>
+            <div class="mui-media-body" style="padding-left: 15px;color: #333">
+                {{todoTitle}}
+                <p style="margin-top: 10px;" class='mui-ellipsis'>{{todoContent}}</p>
+                <p style="position:absolute;right:5px;top: 10px;font-size: 16px">{{todoTime}}</p>
+            </div>
+        </a>
+    </li>
+    <li class="mui-table-view-cell">
+        <a onclick="openTodo('mail')">
+            <div class="mui-media-object mui-pull-left">
+                <div class="my-left" style="background-color: #30cc72">
+                  <span v-if="mailCount>0" style="position: absolute;top: 10px;left: 56px"
+                        class="mui-badge mui-badge-danger">{{mailCount}}</span>
+                    <div style="white-space: normal;width: 40px;">邮件</div>
+                </div>
+            </div>
+            <div class="mui-media-body" style="color: #333;padding-left: 15px">
+                {{mailTitle}}
+                <p style="margin-top: 10px;" class='mui-ellipsis'>{{mailContent}}</p>
+                <p style="position:absolute;right:5px;top: 10px;font-size: 16px">{{mailTime}}</p>
+            </div>
+        </a>
+    </li>
+</ul>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../script/http.js"></script>
+<script type="text/javascript" src="../../script/db.js"></script>
+<script type="text/javascript" src="../../script/business.js"></script>
+<script type="text/javascript" src="../../script/CDateTime.js"></script>
+<script type="text/javascript">
+    var todoModel;
+    var IsPush = false;
+    apiready = function () {
+        initData();
+        api.addEventListener({
+            name:'viewappear'
+        }, function(ret, err){
+            reflash();
+        });
+    };
+    function initData() {
+        fnInitDB();
+        todoModel = new Vue({
+            el: '#todoList',
+            data: {
+                //problem
+                problemCount: 0,
+                problemContent: "暂无故障",
+                problemTime: "",
+                //businesstodo
+                todoCount: 0,
+                todoContent: "暂无审批",
+                todoTitle: "",
+                todoTime: "",
+                //mail
+                mailCount: 0,
+                mailTitle: "",
+                mailContent: "暂无邮件",
+                mailTime: "",
+            }
+        });
+        reflash();
+        queryMsg(todoModel);
+        api.setRefreshHeaderInfo({
+            bgColor: '#f5f5f5',
+            dropColor: '#9BA2AC'
+        }, function (ret, err) {
+            if (IsPush) {
+                api.refreshHeaderLoadDone();
+                return;
+            }
+            reflash();
+        });
+    }
+    function reflash() {
+        IsPush = true;
+        downloadAllMsg(function () {
+            queryMsg(todoModel);
+            IsPush = false;
+            api.refreshHeaderLoadDone();
+        });
+    }
+    function openTodo(type) {
+        switch (type) {
+            case 'problem':
+                api.openWin({
+                    name: 'defect_list',
+                    url: './problem/defect_list_win.html',
+                    animation: {
+                        type: 'movein'
+                    }
+                });
+                break;
+            case 'todo':
+                api.openWin({
+                    name: 'business_todo',
+                    url: './businesstodo/business_todo.html',
+                    delay: 200,
+                    bounces: false,
+                    animation: {
+                        type: 'movein'
+                    }
+                });
+                break;
+            case 'mail':
+                api.openWin({
+                    name: 'infomation',
+                    url: './mail/infomation.html',
+                });
+                break;
+        }
+    }
+</script>
+</html>

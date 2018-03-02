@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no"/>
+	<link rel="stylesheet" type="text/css" href="../../../css/aui.css"/>
+    <style>
+    	.aui-list .aui-list-item-right{font-size: 0.7rem;}
+    </style>
+</head>
+<body>
+<div class="aui-content aui-margin-b-15">
+	
+</div>
+</body>
+<script id="disposal_info_temp" type="text/template">
+<ul class="aui-list aui-list-in">
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">开始时间</div>
+            <div class="aui-list-item-right">{{=it.startTimeStr}}</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">结束时间</div>
+            <div class="aui-list-item-right">{{=it.endTimeStr}}</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">维修方式</div>
+            <div class="aui-list-item-right">
+            {{?it.disposalMode==='1'}}
+			改造
+			{{??it.disposalMode==='2'}}
+			维修
+			{{??it.disposalMode==='3'}}
+			更换
+			{{??it.disposalMode==='4'}}
+			新增
+			{{?}}
+            </div>
+        </div>
+    </li>
+    {{?it.PROBLEM_CAUSE_USE==='1'}}
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">故障主因</div>
+            <div class="aui-list-item-right">{{=it.cause}}</div>
+        </div>
+    </li>
+    {{?}}
+    {{?it.PROBLEM_CAUSE_REMARK_USE==='1'}}
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">主因说明</div>
+            <div class="aui-list-item-right">{{=it.causeRemark}}</div>
+        </div>
+    </li>
+    {{?}}
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">处理过程</div>
+            <div class="aui-list-item-right">{{=it.process}}</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">维护人员</div>
+            <div class="aui-list-item-right">{{=it.disposalUserNames}}</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">故障状态</div>
+            <div class="aui-list-item-right">
+			{{?it.status==='1'}}
+			未确诊
+			{{??it.status==='2'}}
+			已确诊
+			{{??it.status==='3'}}
+			已排除
+			{{?}}
+			</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">处理计划</div>
+            <div class="aui-list-item-right">
+            {{?it.planTypeId===1}}
+           	 继续处理
+       	 	{{??it.planTypeId===2}}
+       	 	暂不处理
+       	 	{{??it.planTypeId===3}}
+       	 	不处理
+            {{?}}
+            </div>
+        </div>
+    </li>
+    {{?it.status==='3'}}
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">功能缺失</div>
+            <div class="aui-list-item-right">{{=it.sysFuncNames}}</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">功能位置</div>
+            <div class="aui-list-item-right">{{=it.devicePlaceNames}}</div>
+        </div>
+    </li>
+    {{?}}
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">是否缓修</div>
+            <div class="aui-list-item-right">{{=it.isDefer}}</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">缓修天数</div>
+            <div class="aui-list-item-right">{{=it.deferDay}}</div>
+        </div>
+    </li>
+    <li class="aui-list-item">
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">{{?it.status==='3'}}处理结果{{??}}计划描述{{?}}</div>
+            <div class="aui-list-item-right">{{=it.planDesc}}</div>
+        </div>
+    </li>
+    {{?it.annexImage!=null}}
+    <li class="aui-list-item">
+    	<div class="aui-card-list" style="width:100%;">
+            <div class="aui-card-list-header" style="padding-left:0;">
+                <div>维修照片</div>
+            </div>
+            <div id="img_list" class="aui-card-list-content">
+            {{~it.annexImgs:img}}
+            	<div class="aui-list-item-media" style="float:right;" tapmonde onclick="fnViewImg('{{=img.src}}')">
+	            	<img class="aui-list-img-sm" src="{{=img.src}}"/>
+            	</div>
+            {{~}}
+           	</div>
+        </div>
+    </li>
+    {{?}}
+</ul>
+</script>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/doT.min.js"></script>
+<script type="text/javascript">
+	var serverUrl = null;
+	var cur_user = null;
+	var doTxt = null;
+	var toast = new auiToast();
+	apiready = function(){
+		serverUrl = $api.getStorage("gmms_url");
+		cur_user = $api.getStorage("user");
+		doTxt = doT.template($('#disposal_info_temp').html());
+		window.setTimeout(function(){
+			fnQueryData();
+		},300);
+	};
+	
+	function fnQueryData(){
+		toast.loading({
+            title:"加载中...",
+            duration:2000
+        });
+    	api.ajax({
+	        url: serverUrl + '/modules/mobile/defect/fault-repair-rbi!findProblemDisposal.action',
+            method: 'GET',
+            timeout: 10,
+            data: {
+                values: {
+                	lesseeId: cur_user.lesseeId,
+                	disposalId: api.pageParam.disposalId
+                }
+            }
+        },function(ret,err){
+        	toast.hide();
+        	if(ret){
+        		if(ret.annexImage!=null&&ret.annexImage!=''){
+        			$.each(ret.annexImgs,function(i,img){
+        				img.src = serverUrl+'/modules/upload/file-open!getFileStream.action?fileId='+img.id;
+        			});
+        		}
+        		$('.aui-content').html(doTxt(ret));
+        	}else{
+        		api.toast({msg: err.msg});
+        	}
+        });
+	}
+	
+	function fnViewImg(url){
+		var photoBrowser = api.require('photoBrowser');
+		photoBrowser.open({
+		    images: [url],
+		    bgColor: '#000'
+		}, function(ret, err) {
+		    if (ret) {
+		        if(ret.eventType=='click'){
+		        	photoBrowser.close();
+		        }
+		    }
+		});
+	}
+</script>
+</html>

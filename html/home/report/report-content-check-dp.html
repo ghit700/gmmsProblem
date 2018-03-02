@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+        }
+
+        .mui-scroll-container {
+            /*padding-top: 10px;
+             padding-bottom: 15px;
+             position: relative;
+             border-bottom: 1px #dedede solid;
+             border-top: 1px #dedede solid;
+             background-color: white;
+             margin-top: 5px;*/
+        }
+
+        .mui-scroll-container div {
+            position: absolute;
+            text-align: center;
+            top: 50%;
+            padding: 2px;
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            -o-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+
+        .mui-scroll-container h5 {
+            padding-left: 10px;
+            padding-top: 5px;
+            color: black
+        }
+
+        .mui-scroll-container-split {
+            position: absolute;
+            width: 1px;
+            border-left: 1px #dedede solid;
+            margin-bottom: 5px;
+            height: 90%;
+            left: 62%;
+            margin-left: 20px;
+        }
+
+        /*已检查*/
+        .tunnel-state-finish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #64d441;
+        }
+
+        /*未检查*/
+        .tunnel-state-unfinish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: #ffffff;
+            background-color: #eb7171;
+        }
+
+        /*检查中*/
+        .tunnel-state-checking {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #4891ff;
+        }
+
+        .mui-scroll-container img {
+            width: 18px;
+            height: 18px;
+            margin-left: 2px;
+        }
+
+        .mui-scroll-container span {
+            font-size: 14px;
+            margin-left: 4px;
+            margin-top: 3px;
+            margin-right: 2px;
+        }
+
+        .arrow-img {
+            width: 18px;
+            -webkit-transform: rotate(-90deg);
+            right: 0;
+            margin-right: 10px;
+            position: absolute;
+        }
+
+    </style>
+</head>
+<body>
+<div class="mui-content">
+    <ul class="mui-table-view " style="width: 100%;margin-top: 0px">
+
+    </ul>
+</div>
+
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/cache.js"></script>
+<script type="text/javascript">
+    mui.init();
+    apiready = function () {
+        loadData();
+    };
+    var lstData;
+    function loadData() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '获取数据中...',
+            modal: true
+        });
+
+        post("/modules/mobile/task/fire-task!queryDevicePlaceDetailCheckSituation.action", {
+            type: api.pageParam.type,
+            taskIds: api.pageParam.taskIds,
+            itemName: api.pageParam.itemName,
+            isCheck: api.pageParam.isCheck,
+            dpId: api.pageParam.devicePlaceId
+        }, function (json) {
+            lstData = new Array;
+            var num = 0;
+            $.each(json.data, function (i, data) {
+                var index = isContainComponent(data.componentName);
+                if (index != -1) {
+                    lstData[index].data.push(data);
+                } else {
+                    lstData[num++] = {
+                        name: data.componentName,
+                        data: new Array
+                    };
+                    lstData[num - 1].data.push(data);
+                }
+            });
+            $.each(lstData, function (i, data) {
+                var status = 0;
+                var finishCount = 0;
+                $.each(data.data, function (i, taskItem) {
+                    if (taskItem.status == 1) {
+                        status = 1;
+                        return;
+                    } else if (taskItem.status == 2) {
+                        finishCount++;
+                    }
+                });
+                if (finishCount == data.data.length) {
+                    status = 2;
+                }
+                lstData[i].status = status;
+            });
+            loadTopHtml();
+        });
+    }
+    function isContainComponent(componentName) {
+        for (var i = 0; i < lstData.length; i++) {
+            if (lstData[i].name == componentName) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    //当前界面是构件还是功能位置
+    var isComponent;
+    function loadTopHtml() {
+        isComponent = true;
+        var html = "";
+        $.each(lstData, function (i, data) {
+            var stateHtml = "";
+            if (data.status == 0) {
+                stateHtml += '<div class="tunnel-state-unfinish"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/non-finish.png" /><span >未检查</span></div>';
+            } else if (data.status == 1) {
+                stateHtml += '<div class="tunnel-state-checking"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/checking.png" /><span>检查中</span></div>';
+            } else if (data.status == 2) {
+                stateHtml += '<div class="tunnel-state-finish"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/finish.png" /><span>已检查</span></div>';
+            }
+            html += '<li class="mui-table-view-cell mui-media"> <div class="mui-media-body mui-scroll-container" onclick="loadHtml(' + i + ')">'+ stateHtml+' <h4 style="width: 200px">' + data.name  + ' </h4> </div> </li>';
+        });
+        $('.mui-table-view').html(html);
+    }
+
+    var currentPage = 0;
+    function loadHtml(index) {
+
+        isComponent = false;
+        currentPage = index;
+        var imgCount = 0;
+        var lstTaskItems = lstData[index].data;
+        if (lstTaskItems != undefined && lstTaskItems.length > 0) {
+
+            var html = "";
+            var click = "";
+            var imgHtml = "";
+            $.each(lstTaskItems, function (i, taskItem) {
+                var stateHtml = "";
+                if (taskItem.status == 0) {
+                    stateHtml += '<div class="tunnel-state-unfinish"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/non-finish.png" /><span >未检查</span></div>';
+                } else if (taskItem.status == 1) {
+                    if(taskItem.isHasChild){
+                        click = "fnTaskDetailList(" + index +  "," + i + ")";
+                    }
+                    stateHtml += '<div class="tunnel-state-checking"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/checking.png" /><span>检查中</span></div>';
+                } else if (taskItem.status == 2) {
+                    click = "fnTaskDetailList(" + index +  "," + i + ")";
+                    stateHtml += '<div class="tunnel-state-finish"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/finish.png" /><span>已检查</span></div>';
+                }
+
+                imgHtml = "";
+                if (taskItem.photos != undefined && taskItem.photos.length > 0) {
+                    imgCount++;
+                    if (taskItem.photos[0].indexOf('annexdownload') != -1) {
+                        var gmms_url = $api.getStorage('gmms_url');
+                        $.each(taskItem.photos, function (i, photo) {
+                            taskItem.photos[i] = gmms_url + photo;
+                        });
+                        cacheImages(taskItem.photos, "img" + imgCount, 'src', 0, true);
+                        imgHtml = ' <img id="img' + imgCount + '" style="height:50px;width: 20%" class=" mui-pull-left" src="../../../image/loadingImg.png">';
+                    } else {
+                        imgHtml = ' <img onclick="fnShowImg(' + i + ')" id="img' + imgCount + '" style="height:50px;width: 20%" class=" mui-pull-left" src="' + taskItem.photos[0] + '">';
+                    }
+                }
+                html += '<li class="mui-table-view-cell mui-media">' + imgHtml + ' <div class="mui-media-body mui-scroll-container" onclick="' + click + '">' + stateHtml + '<h5 >' + taskItem.name + '</h5><h5 >' + taskItem.itemName + '</h5></div> </li>';
+            });
+            $('.mui-table-view').html(html);
+
+        } else {
+            $('.mui-table-view').html("");
+        }
+
+    }
+    function fnShowImg(index) {
+        var imageBrowser = api.require('imageBrowser');
+        imageBrowser.openImages({
+            showList: false,
+            activeIndex: 0,
+            tapClose: true,
+            imageUrls: lstData[currentPage].data[index].photos
+        });
+    }
+
+    //直接跳转到任务检查项目列表
+    function fnTaskDetailList(index, position) {
+        var lstTaskItems;
+        lstTaskItems = lstData[index].data;
+        var taskItem = lstTaskItems[position];
+
+        if (taskItem.isHasChild == true) {
+            api.openWin({
+                name: "report-content-check-dp-header-child",
+                url: "./report-content-check-dp-header.html",
+                reload: true,
+                pageParam: {
+                    devicePlaceId: taskItem.id,
+                    type: api.pageParam.type,
+                    taskIds: api.pageParam.taskIds,
+                    itemName: api.pageParam.itemName,
+                    isCheck: api.pageParam.isCheck,
+                    name: api.pageParam.itemName
+                },
+                vScrollBarEnabled: false
+            });
+        } else {
+            api.openWin({
+                name: 'check-task-detail-content',
+                url: '../check/check-task-detail-content.html',
+                pageParam: {
+                    taskId: taskItem.taskId,
+                    devicePlaceId: taskItem.id,
+                    name: taskItem.name,
+                    componentName: taskItem.componentName,
+                    type: 'report',
+                    itemName: taskItem.itemName
+                },
+                vScrollBarEnabled: false,
+            });
+        }
+
+    }
+    //后退键按压事件
+    function backPressEvent() {
+        if (isComponent) {
+            api.closeWin();
+        } else {
+            loadTopHtml();
+        }
+    }
+
+</script>
+</html>

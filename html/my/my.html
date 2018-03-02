@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <!--<link rel="stylesheet" type="text/css" href="../css/api.css"/>-->
+    <link rel="stylesheet" type="text/css" href="../../css/mui.min.css"/>
+    <style>
+        html, body {
+            min-height: 100%;
+            background-color: #efeff4;
+        }
+
+        body {
+            background: #f4f5f7;
+        }
+        .me_header {
+            background: #FFFFFF;
+        }
+        .me_header {
+            width: 100%;
+            position: relative;
+        }
+        .me_header img {
+            display: block;
+            width: 100%;
+        }
+        .me_header a {
+            width: 7%;
+            position: absolute;
+            top: 8%;
+            left: 4%;
+        }
+        .me_header .me_info {
+            position: absolute;
+            top: 50px;
+            left: 33%;
+            width: 36%;
+            height: 100%;
+        }
+        .me_header .me_info img {
+            display: block;
+            width: 60%;
+            margin: 5% auto 0;
+        }
+        .me_header .me_info span {
+            display: block;
+            width: 100%;
+            line-height: 16px;
+            font-size: 14px;
+        }
+        .me_header .me_info div {
+            width: 100%;
+            position: relative;
+        }
+        .me_header .me_info div img {
+            display: block;
+            width: 100%;
+        }
+        .me_header .me_info div span {
+            display: block;
+            position: absolute;
+            top: 10%;
+            font-size: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="mui-content" style="background-color: white">
+    <div class="me_header" >
+        <div class="me_info">
+            <img src="../../image/tx.png" />
+            <span style="text-align: center;color: #FFFFFF;"></span>
+            <div style="text-align: center;">
+                <span id="username" style="text-align: center;margin-top: 2%;font-size: 13px;color: #FFFFFF;"></span>
+            </div>
+        </div>
+        <img src="../../image/me_header.png" />
+    </div>
+    <ul class="mui-table-view" style="margin-top: 10px;height: auto">
+        <!--<li class="mui-table-view-cell" onclick="fnLoginSet()">-->
+            <!--<a class="mui-navigate-right"> 服务器地址设置 </a>-->
+        <!--</li>-->
+        <li class="mui-table-view-cell" onclick="updateBaseData()">
+            <a class="mui-navigate-right"> 数据管理 </a>
+        </li>
+        <li id="count" class="mui-table-view-cell" onclick="uploadData()">
+            <a class="mui-navigate-right"> 上传数据</a>
+        </li>
+        <li  class="mui-table-view-cell" >
+            <a id="version" class="mui-navigate-right"> 版本 : </a>
+        </li>
+        <li id="time" class="mui-table-view-cell">
+            <a class="mui-navigate-right"></a>
+        </li>
+
+    </ul>
+    <div style="padding-top:2em;text-align: center;margin:0 auto;">
+        <button onclick="loginOut()" type="button" class="mui-btn mui-btn-primary" style="width: 95%;height:3em;">
+            退出
+        </button>
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../script/location.js"></script>
+<script type="text/javascript" src="../../script/push.js"></script>
+<script type="text/javascript" src="../../script/http.js"></script>
+<script type="text/javascript" src="../../script/common.js"></script>
+<script type="text/javascript" src="../../script/db.js"></script>
+<script type="text/javascript" src="../../script/fs.js"></script>
+<script type="text/javascript" src="../../script/dataManage.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        fnInitDB();
+        initData();
+        $('#username').html($api.getStorage('user').name);
+        $('#version').append(api.appVersion);
+        api.addEventListener({
+            name: 'viewappear'
+        }, function (ret, err) {
+            initData();
+        });
+        autoUploadData();
+    };
+
+    function initData() {
+        queryNonUploadDataCount();
+        download("/modules/mobile/task/fire-task!sysnTime.action", {}, function (ret) {
+            $api.setStorage('systemTime', ret.time);
+            $api.setStorage('systemHour', ret.hour);
+            var dateStr = fnFormatDate(ret.time);
+            $('#time').html(' 当前日期：' + dateStr);
+            if ($api.getStorage('preTime') == undefined || $api.getStorage('preTime') < $api.getStorage('systemTime')) {
+                if ($api.getStorage('preTime') != undefined) {
+                    $api.rmStorage('peripherals');
+                }
+                $api.setStorage('preTime', $api.getStorage('systemTime'));
+            }
+        }, function (err) {
+        });
+        var time = $api.getStorage('systemTime');
+        if (time != undefined) {
+            var dateStr = fnFormatDate(time);
+            $('#time').html(' 当前日期：' + dateStr);
+        }
+    }
+    function fnLoginSet() {
+        api.openWin({
+            name: 'loginSet',
+            url: '../login/loginSet.html',
+            delay: 200
+        });
+    }
+    function loginOut() {
+        if (queryNonUploadDataCount() == 0) {
+            api.confirm({
+                title: '提示',
+                msg: '是否确定退出登录？',
+                buttons: ['确定', '取消']
+            }, function (ret, err) {
+                if (ret.buttonIndex == 1) {
+                    stopLocation();
+                    unbind();
+                    $api.rmStorage('user');
+                    $api.rmStorage('systemId');
+                    deleteTaskMsg('all');
+
+                    api.openWin({
+                        name: 'login',
+                        url: '../login/login.html',
+                        slidBackEnabled: false
+                    });
+
+                    window.setTimeout(function () {
+                        api.closeWin({
+                            name: 'main'
+                        });
+                    },1000);
+
+                }
+            });
+
+        } else {
+            api.toast({
+                msg: '存在待上传数据，退出将丢失数据，不能退出，请先上传数据。',
+                duration: 5000,
+                location: 'bottom'
+            });
+        }
+    }
+
+    function updateBaseData() {
+        if (queryNonUploadDataCount() == 0) {
+            fnHeaderWin("数据管理", "base-data", "/my/base-data.html",{});
+        } else {
+            api.toast({
+                msg: '存在待上传数据，更新将丢失数据，请先上传数据。',
+                duration: 5000,
+                location: 'bottom'
+            });
+        }
+    }
+
+</script>
+</html>

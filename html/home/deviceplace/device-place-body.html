@@ -1,0 +1,243 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/iconfont.css"/>
+    <style type="text/css">
+        html, body {
+            min-height: 100%;
+            background-color: #efeff4;
+        }
+
+        #topDiv {
+            animation: mainbody 1s;
+            -moz-animation: mainbody 1s; /* Firefox */
+            -webkit-animation: mainbody 1s; /* Safari and Chrome */
+        }
+
+        @keyframes mainbody {
+            from {
+                height: 0;
+            }
+            to {
+                height: api . winHeight / 2 -70;
+            }
+        }
+
+        @-moz-keyframes mainbody /* Firefox */
+        {
+            from {
+                height: 0;
+            }
+            to {
+                height: api . winHeight / 2 -70;
+            }
+        }
+
+        @-webkit-keyframes mainbody /* Safari and Chrome */
+        {
+            from {
+                height: 0;
+            }
+            to {
+                height: api . winHeight / 2 -70;
+            }
+        }
+
+        @-o-keyframes mainbody /* Opera */
+        {
+            from {
+                height: 0;
+            }
+            to {
+                height: api . winHeight / 2 -70;
+            }
+        }
+
+        .mui-header {
+            background-color: #1081DA
+        }
+
+        .egret-scan {
+            position: absolute;
+            right: 1px;
+        }
+
+        .mui-header img {
+            height: 40px;
+            width: 40px;
+            padding: 10px;
+            top: 5px;
+            vertical-align: top;
+        }
+
+        .egret-reflash {
+            position: absolute;
+        }
+
+        .mui-table-view-cell:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-table-view-cell {
+            border: 1px #dedede solid;
+        }
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header">
+    <!--<a class="mui-action-menu mui-pull-right egret-scan" onclick="fnScanWin()"><img-->
+    <!--src="../image/tmall_icon.png"/></a>-->
+    <a class="mui-action-menu mui-pull-right egret-reflash" onclick="closeWin()"><img
+            src="../../../image/back_btn.png"/></a>
+    <h1 class="mui-title" style="color: white">功能位置</h1>
+</header>
+<div class="mui-content">
+    <div id="topDiv" style="width:100%;text-align: center;">
+        <img alt="" width="100px" src="../../../image/gongchengshi.png">
+        <p id="user_name" style="margin-top: 10px"></p>
+    </div>
+    <ul class="mui-table-view mui-grid-view mui-grid-9" style="position: fixed;bottom: 0">
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4" onclick="fnOpenWin(5)">
+            <a href="#"> <span class="mui-icon iconfont icon-jiancha"></span>
+                <div class="mui-media-body" style="margin-top: 25px;">
+                    日检查
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4" onclick="fnOpenWin(4)">
+            <a href="#"> <span class="mui-icon iconfont icon-book"></span>
+                <div class="mui-media-body" style="margin-top: 25px;">
+                    周检查
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4" onclick="fnOpenWin(3)">
+            <a href="#"> <span class="mui-icon iconfont icon-lease-resv-2home"></span>
+                <div class="mui-media-body" style="margin-top: 25px;">
+                    月检查
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4" onclick="fnOpenWin(2)">
+            <a href="#"> <span class="mui-icon iconfont icon-ji"></span>
+                <div class="mui-media-body" style="margin-top: 25px;">
+                    季检查
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4" onclick="fnOpenWin(1)">
+            <a href="#"> <span class="mui-icon iconfont icon-jianchabiaodan"></span>
+                <div class="mui-media-body" style="margin-top: 25px;">
+                    年检查
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4" onclick="fnOpenWin(0)">
+            <a href="#"> <span class="mui-icon iconfont icon-view-1-copy"></span>
+                <div class="mui-media-body" style="margin-top: 25px;">
+                    夜间检查
+                </div>
+            </a>
+        </li>
+    </ul>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/scan.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript">
+    mui.init();
+    apiready = function () {
+        fnInitDB();
+        initHeader();
+        var topDivHeight = api.winHeight / 2 - 70;
+        $('#topDiv').height(topDivHeight);
+        $('#topDiv img').css('margin-top', (topDivHeight - 120) / 2 + 'px');
+        //用户显示信息
+        var user = $api.getStorage('user');
+        $('#user_name').html(user.name);
+        api.parseTapmode();
+
+    };
+
+    /**
+     * 九宫格打开窗口事件
+     */
+    function fnOpenWin(type) {
+        //1.年 2.季 3.月 4.周 5.天
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '加载中...',
+            modal: true
+        });
+        if (api.pageParam.type == 0 && $api.getStorage('systemHour') < 20) {
+            api.toast({
+                msg: '还未到指定时间，请在指定时间检查。',
+                duration: 2000,
+                location: 'bottom'
+            });
+        }else{
+            var json = queryDevicePlaceInfo({
+                type: type,
+                dpId: api.pageParam.dpId,
+            });
+            if (json.success) {
+                if (isHasChile(api.pageParam.dpId)) {
+                    api.openWin({
+                        name: "check-task",
+                        url: "../check/check-task.html",
+                        reload: true,
+                        pageParam: {
+                            "taskId": json.data.taskId,
+                            "devicePlaceId": api.pageParam.dpId,
+                            type: type,
+                            "name": json.data.itemName,
+                            itemName: json.data.itemName,
+                            imgSrc: api.pageParam.imgSrc,
+                        },
+                        vScrollBarEnabled: false,
+                    });
+                } else {
+                    api.openWin({
+                        name: 'check-task-detail-content',
+                        url: '../check/check-task-detail-content.html',
+                        pageParam: {
+                            "taskId": json.data.taskId,
+                            "devicePlaceId": api.pageParam.dpId,
+                            "name": json.data.name,
+                            "componentName": json.data.componentName,
+                            itemName: json.data.itemName,
+                            roadLineName: json.data.roadLineName,
+                            imgSrc: api.pageParam.imgSrc,
+                            type: type
+                        },
+                        vScrollBarEnabled: false,
+                    });
+                }
+            } else {
+                api.toast({
+                    msg: json.errorMsg,
+                    duration: 2000,
+                    location: 'bottom'
+                });
+            }
+        }
+
+        api.hideProgress();
+
+    }
+
+</script>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>故障登记</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .wheel-scroll {
+            padding-left: 0;
+        }
+
+        .circle-span-title-badge {
+            display: -webkit-box;
+            -webkit-box-pack: center;
+            -webkit-box-align: center;
+            text-align: center;
+            width: 30px;
+            height: 30px;
+            left: 15px;
+            color: white;
+            background-color: #00cc66;
+        }
+
+        .circle-span-title-text {
+            margin-left: 35px;
+        }
+
+        .mui-input-row label {
+            padding: 0;
+            line-height: unset
+        }
+
+        .mui-input-row input {
+            padding: 0;
+            height: auto;
+        }
+
+        .mui-content.mui-scroll-wrapper {
+
+            overflow: auto;
+
+        }
+
+        .mui-slider.mui-fullscreen .mui-slider-group .mui-control-content .mui-scroll-wrapper {
+            overflow: auto;
+        }
+
+        .mui-control-item {
+            padding: 5px 0;
+            line-height: normal;
+        }
+    </style>
+</head>
+<body>
+<ul id="problem-place" class="mui-table-view" style="margin-top: 10px">
+    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">1</span><span
+            class="circle-span-title-text">故障位置</span></li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label><label style="color: red;width: auto">*</label>所属区域</label>
+            <select v-model="zoneId" class="mui-btn" style="width: auto;padding: 0;margin: 0;float: left;height: auto"
+                    v-on:change="queryItemByParent(zone.id,false)">
+                <option disabled value="">选择区域</option>
+                <option v-for="zone in lstZones" v-bind:value="zone.id">{{zone.name}}</option>
+            </select>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label><label style="color: red;width: auto">*</label>所属系统</label>
+            <input type="text" readonly="readonly" placeholder="请选择系统" v-model="item" v-on:click="openItemSeletor()">
+        </div>
+    </li>
+    <li class="mui-table-view-cell" style="padding: 15px">
+        <div class="mui-input-row">
+            <label><label style="color: red;width: auto">*</label>故障位置</label>
+            <input type="text" placeholder="请输入" v-model="problemPlace">
+        </div>
+    </li>
+</ul>
+<ul id="problem-desc" class="mui-table-view" style="margin-top: 10px">
+    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">2</span><span
+            class="circle-span-title-text">故障详情</span></li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label>问题描述(语音)</label>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label><label style="color: red;width: auto">*</label>问题描述(文字)</label>
+            <input type="text" placeholder="请填写内容" v-model="problemDesc">
+
+        </div>
+    </li>
+    <li class="mui-table-view-cell" style="padding: 15px">
+        <div class="mui-input-row">
+            <label>故障图片</label><label style="float: right;width: auto;color: #3e3e3e">{{lstPhotos.length}}/6</label>
+        </div>
+        <div class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted"
+             style="height: 80px;margin-top: 5px;">
+            <div class="mui-scroll" >
+                <img v-for="(photo,index) in lstPhotos" style="width:80px;height: 80px;margin-right: 5px"
+                     v-bind:src="photo"
+                     v-on:click="showPhoto(index)">
+                <img v-show="lstPhotos.length<6" style="height: 80px" src="../../../image/down_arrow.png"
+                     v-on:click="getPicture('pic')">
+            </div>
+        </div>
+    </li>
+    <li class="mui-table-view-cell" style="padding: 15px">
+        <div class="mui-input-row">
+            <label>故障视频</label><label style="float: right;width: auto;color: #3e3e3e">{{lstVideos.length}}/6</label>
+        </div>
+        <div class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted"
+             style="height: 80px;margin-top: 5px">
+            <div class="mui-scroll">
+                <img v-for="video in lstVideos" style="width:80px;height: 80px;margin-right: 5px"
+                     v-bind:src="video.thumbPath"
+                     v-on:click="showVideo(video.url)">
+
+                <img v-show="lstVideos.length<6" style="height: 80px" src="../../../image/down_arrow.png"
+                     v-on:click="getPicture('video')">
+            </div>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label style="width: 25%;margin-top: 5px;margin-left: 5px">影响程度</label>
+            <div class="mui-segmented-control" style="width: 73%;">
+                <a class="mui-control-item " style="line-height: normal" v-on:click="watchSeriousGrade(1)">
+                    一般
+                </a>
+                <a class="mui-control-item " style="line-height: normal" v-on:click="watchSeriousGrade(2)">
+                    严重
+                </a>
+            </div>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label style="width: 25%;margin-top: 5px;margin-left: 5px">紧急程度</label>
+            <div class="mui-segmented-control" style="width: 73%;">
+                <a class="mui-control-item " style="line-height: normal" v-on:click="watchExigenceGrade(1)">
+                    一级(最高)
+                </a>
+                <a class="mui-control-item" style="line-height: normal;" v-on:click="watchExigenceGrade(2)">
+                    二级
+                </a>
+                <a class="mui-control-item " style="line-height: normal;" v-on:click="watchExigenceGrade(3)">
+                    三级
+                </a>
+            </div>
+        </div>
+    </li>
+</ul>
+<ul id="people-time" class="mui-table-view" style="margin-top: 10px">
+    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">3</span><span
+            class="circle-span-title-text">人员时间</span></li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label><label style="color: red;width: auto">*</label>发现人员</label>
+            <input readonly="readonly" onclick="fnQueryUsers()" v-model="discoverUserName">
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label><label style="color: red;width: auto">*</label>发现时间</label>
+            <input readonly="readonly" id="problem_discover_time" type="text" v-model="discoverTime"
+                   placeholder="发现时间" tapmode onclick="showTimePicker()"/>
+        </div>
+    </li>
+</ul>
+<div style="margin-top: 10px;margin-bottom: 5px;margin-left: 25px;margin-right: 25px;">
+    <button type="button" class="mui-btn-primary mui-btn mui-btn-block">提交</button>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript" src="../../../script/picker.min.js"></script>
+<script type="text/javascript" src="../../../script/date.picker.js"></script>
+<script type="text/javascript" src="../../../script/vue.js"></script>
+<script type="text/javascript">
+    var placeModel;
+    var descModel;
+    var peopleTimeModel;
+    apiready = function () {
+        initData();
+        placeModel = new Vue({
+            el: '#problem-place',
+            created: function () {
+                post("/modules/mobile/maintain/zone-user!userZones.action", {
+                    userId: $api.getStorage('user').id
+                }, function (ret) {
+                    $.each(ret.data, function (i, zone) {
+                        placeModel.lstZones.push(zone);
+                    });
+                });
+            },
+            data: {
+                lstZones: [],
+                zoneId: "",
+                problemPlace: "",
+                item: ""
+            },
+            methods: {
+                queryItemByParent: function (id, isParent) {
+                    var param;
+                    if (isParent) {
+                        param = {
+                            itemParentId: id
+                        }
+                    } else {
+                        param = {
+                            zoneId: id
+                        }
+
+                    }
+                    post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", param, function (ret) {
+                    });
+                },
+                openItemSeletor: function () {
+                    api.openDrawerPane({
+                        type: 'right'
+                    });
+                }
+            },
+            watch: {
+                zoneId: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion && newQuestion != "") {
+                        this.queryItemByParent(newQuestion, false);
+                        api.execScript({
+                            name: 'sel_item',
+                            script: 'loadZoneId(' + newQuestion + ');'
+                        });
+
+                    }
+                }
+            }
+        });
+        peopleTimeModel = new Vue({
+            el: '#people-time',
+            data: {
+                discoverTime: "",
+                discoverUserId: $api.getStorage('user').id,
+                discoverUserName: $api.getStorage('user').name,
+            },
+        });
+        descModel = new Vue({
+            el: '#problem-desc',
+            data: {
+                lstVideos: [],
+                seriousGrade: "",//影响程度
+                exigenceGrade: "",//紧急程度
+                problemDesc: "",
+                lstPhotos: ['../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png'],
+            },
+            methods: {
+                getPicture: function (mediaValue) {
+                    api.getPicture({
+                        sourceType: 'camera',
+                        encodingType: 'jpg',
+                        mediaValue: mediaValue,
+                        destinationType: 'url',
+                        allowEdit: true,
+                        quality: 90,
+                        targetWidth: 1024,
+                        targetHeight: 1366,
+                        saveToPhotoAlbum: true
+                    }, function (ret, err) {
+                        if (ret) {
+                            if (mediaValue == 'video') {
+                                window.setTimeout(function () {
+                                    savethumbnail(ret.data);
+                                }, 1000);
+                            } else {
+                                descModel.lstPhotos.push(ret.data);
+                            }
+                        }
+                    })
+                },
+                watchSeriousGrade: function (grade) {
+                    descModel.seriousGrade = grade;
+                },
+                watchExigenceGrade: function (grade) {
+                    descModel.exigenceGrade = grade;
+                },
+                showVideo: function (url) {
+                    api.openVideo({
+                        url: url
+                    });
+                },
+                showPhoto: function (index) {
+                    var imageBrowser = api.require('imageBrowser');
+                    imageBrowser.openImages({
+                        imageUrls: descModel.lstPhotos,
+                        activeIndex: index,
+                        showList: false
+                    });
+                }
+            }
+        });
+    };
+
+    /**
+     * 保存缩略图
+     */
+    function savethumbnail(url) {
+        var UIMediaScanner = api.require('UIMediaScanner');
+        UIMediaScanner.scan({
+            type: 'video',
+            count: 1,
+            sort: {
+                key: 'time',
+                order: 'desc'
+            },
+            thumbnail: {
+                w: 100,
+                h: 100
+            }
+        }, function (ret) {
+            if (ret.eventType == 'success') {
+                if (ret.list.length > 0) {
+                    descModel.lstVideos.push({
+                        thumbPath: ret.list[0].thumbPath,
+                        url: url,
+                    });
+                    mui('.mui-scroll-wrapper').scroll({
+                        deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+                    });
+                }
+            }
+        });
+    }
+    function showTimePicker() {
+        if (startTimePicker == null) {
+            startTimePicker = new DatePicker();
+        }
+        startTimePicker.show({
+            frameBounces: true,
+            type: 'datetime'
+        }, function (ret) {
+            $('#problem_discover_time').val(ret.year + '-' + ret.month + '-' + ret.day + ' ' + ret.hour + ':' + ret.min + ':00');
+        });
+    }
+    var startTimePicker;
+    function initData() {
+        startTimePicker = null;
+    }
+    /**
+     * 选择用户
+     */
+    function fnQueryUsers() {
+        api.openWin({
+            name: 'sel_useunit',
+            url: './select/sel_useunit_win.html',
+            pageParam: {
+                winName: api.winName,
+                frameName: api.frameName
+            },
+            animation: {
+                type: 'movein'
+            }
+        });
+    }
+    //设置发现人员
+    function fnSetUserInfo(ids, names) {
+        peopleTimeModel.discoverUserName = names;
+        peopleTimeModel.discoverUserId = ids;
+    }
+    //设置选择后的系统
+    function fnsetItem(itemName, isSelected) {
+        if (isSelected) {
+            placeModel.item = itemName;
+        } else {
+            if (itemName.indexOf("->") >= 0) {
+                placeModel.item = itemName.substring(0, itemName.lastIndexOf('-'));
+            } else {
+                placeModel.item = "";
+            }
+        }
+    }
+
+</script>
+</html>

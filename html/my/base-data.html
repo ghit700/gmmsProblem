@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+    </style>
+</head>
+<body>
+<ul class="mui-table-view">
+    <li  class="mui-table-view-cell" onclick="againDownloadTask(5)">
+        <a class="mui-navigate-right"> 日检查任务数据 </a>
+    </li>
+    <li  class="mui-table-view-cell" onclick="againDownloadTask(4)">
+        <a class="mui-navigate-right"> 周检查任务数据 </a>
+    </li>
+    <li  class="mui-table-view-cell" onclick="againDownloadTask(3)">
+        <a class="mui-navigate-right"> 月检查任务数据 </a>
+    </li>
+    <li  class="mui-table-view-cell" onclick="againDownloadTask(2)">
+        <a class="mui-navigate-right"> 季检查任务数据 </a>
+    </li>
+    <li  class="mui-table-view-cell" onclick="againDownloadTask(1)">
+        <a class="mui-navigate-right"> 年检查任务数据 </a>
+    </li>
+    <li  class="mui-table-view-cell" onclick="againDownloadTask(0)">
+        <a class="mui-navigate-right"> 夜间检查任务数据 </a>
+    </li>
+
+</ul>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/http.js"></script>
+<script type="text/javascript" src="../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../script/db.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        fnInitDB();
+        api.showProgress({
+            title: '获取数据中...',
+            modal: true
+        });
+        post("/modules/mobile/task/fire-task!queryUserZoneAuthority.action", {
+            userId: $api.getStorage('user').id,
+        }, function (ret) {
+            if (ret.data.length > 0) {
+                var html = "";
+                $.each(ret.data, function (i, zone) {
+                    html += '<li class="mui-table-view-cell" onclick="downloadBaseData(' + zone.id + ')">' +
+                        '<a class="mui-navigate-right">' + zone.name + '基础数据 </a>' +
+                        '</li>';
+                });
+                $('.mui-table-view').append(html);
+            }
+        })
+    };
+    function downloadBaseData(zoneId) {
+        api.confirm({
+            title: '提示',
+            msg: '是否更新基础数据？',
+            buttons: ['确定', '取消']
+        }, function (ret, err) {
+            if (ret.buttonIndex == 1) {
+                api.showProgress({
+                    title: '下载数据中...',
+                    modal: true
+                });
+                download("/modules/mobile/task/fire-task!downAllZoneData.action", {
+                    zoneId: zoneId
+                }, function (ret) {
+                    deleteTaskMsg('base');
+                    insertBaseData(ret);
+                    api.hideProgress();
+                    alert("下载完成");
+                }, function (err) {
+                    api.hideProgress();
+                    if (err != undefined) {
+                        alert("下载数据失败," + err);
+                    } else {
+                        alert("下载数据失败");
+                    }
+                });
+            }
+
+        });
+    }
+    //重新下载任务数据
+    function againDownloadTask(type) {
+        api.confirm({
+            title: '提示',
+            msg: '是否重新下载任务数据？',
+            buttons: ['确定', '取消']
+        }, function (ret, err) {
+            if (ret.buttonIndex == 1) {
+                downloadTaskData("",type);
+            }
+        });
+    }
+</script>
+</html>

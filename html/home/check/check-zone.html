@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .mui-scroll-container img {
+            width: 18px;
+            height: 18px;
+            margin-left: 2px;
+        }
+
+        .mui-scroll-container {
+            position: relative;
+            border-bottom: 1px #dedede solid;
+            border-top: 1px #dedede solid;
+            background-color: white;
+            margin-top: 5px;
+
+            padding-bottom: 10px;
+        }
+
+        .mui-scroll-container:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-scroll-container div {
+            position: absolute;
+            right: 15px;
+            border-radius: 5px;
+            text-align: center;
+            padding: 2px;
+            top: 50%;
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            -o-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+
+        .mui-scroll-container h4 {
+            font-size: 20px;
+            padding-left: 10px;
+            padding-top: 10px;
+        }
+
+        /*未检查*/
+        .tunnel-state-unfinish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: #ffffff;
+            background-color: #eb7171;
+        }
+
+        /*检查中*/
+        .tunnel-state-checking {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #4891ff;
+        }
+
+        /*已检查*/
+        .tunnel-state-finish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #64d441;
+        }
+
+        .mui-scroll-container-state-span {
+            font-size: 14px;
+            margin-left: 4px;
+            margin-top: 3px;
+            margin-right: 2px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="mui-content"></div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/dataManage.js"></script>
+<script type="text/javascript">
+    var taskIds;
+    var lstRoadLines;
+    apiready = function () {
+        fnInitDB();
+        if (api.pageParam.type == 0 && (($api.getStorage('systemId') == 2 && $api.getStorage('systemHour') < 20) ||
+            ($api.getStorage('systemId') == 3 && $api.getStorage('systemHour') < 18) )) {
+            api.toast({
+                msg: '还未到指定时间，请在指定时间检查。',
+                duration: 2000,
+                location: 'bottom'
+            });
+        } else {
+            loadNewTask(api.pageParam.type);
+            loadData();
+            api.addEventListener({
+                name: 'jdRoadChecking'
+            }, function (ret, err) {
+                var roadId = ret.value.roadId;
+                var status = queryRoadStatus(roadId, api.pageParam.type, $api.getStorage('systemTime'));
+                $.each(lstRoadLines, function (i, road) {
+                    if (road.id == roadId) {
+                        road.status = status;
+                    }
+                });
+                statusSort(lstRoadLines);
+                showRoadList();
+            });
+        }
+    };
+    function loadData() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '获取数据中...',
+            modal: true
+        });
+        var ret = queryCheckTaskLyxfByZone({
+            type: api.pageParam.type
+        });
+        if (ret.success) {
+            lstRoadLines = ret.data;
+            showRoadList();
+        } else {
+            api.toast({
+                msg: ret.errorMsg,
+                duration: 2000,
+                location: 'bottom'
+            });
+        }
+        api.hideProgress();
+    }
+    function showRoadList() {
+        var html = "";
+        $.each(lstRoadLines, function (i, road) {
+            var stateHtml = "";
+            if (road.status == 0) {
+                stateHtml += '<div class="tunnel-state-unfinish "><img src="../../../image/non-finish.png" style="width: 18px"/><span class="mui-scroll-container-state-span">未检查</span></div>'
+            } else if (road.status == 1) {
+                stateHtml += '<div class="tunnel-state-checking "><img src="../../../image/checking.png" style="width: 18px" /><span class="mui-scroll-container-state-span">检查中</span></div>'
+            } else if (road.status == 2) {
+                stateHtml += '<div class="tunnel-state-finish "><img src="../../../image/finish.png" style="width: 18px" /><span class="mui-scroll-container-state-span">已检查</span></div>'
+            }
+            html += '<div class="mui-scroll-container" tapmode="active" onclick="fnTunnelList(' + road.id + ')"><h4 style=" font-size:16px;font-weight:normal">' + road.name + '</h4>' + stateHtml + ' </div>';
+        });
+
+        $('.mui-content').html(html);
+    }
+    function fnTunnelList(roadId) {
+        api.openWin({
+            name: 'check',
+            url: './check.html',
+            pageParam: {
+                roadId: roadId,
+                type: api.pageParam.type
+            }
+        });
+    }
+</script>
+</html>

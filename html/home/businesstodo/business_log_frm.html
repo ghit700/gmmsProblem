@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no"/>
+      <link rel="stylesheet" type="text/css" href="../../../css/aui.css"/>
+      <style>
+      .text-light {
+          color: #ffffff;
+      }
+
+      .aui-timeline .aui-timeline-item-header {
+          background-color: #03a9f4;
+          color: #fff;
+      }
+
+      .aui-timeline .aui-timeline-item-inner {
+          margin-left: 2.75rem;
+      }
+      </style>
+  </head>
+  <body>
+    <div class="aui-content aui-margin-b-15">
+        <div class="aui-timeline" id="logContent">
+<!--            <div class="aui-timeline-item-header aui-bg-success">开始 2017-09-12 10:32:32</div>
+            <div class="aui-timeline-item">
+                <div class="aui-timeline-item-inner">
+                    <div class="aui-card-list">
+                        <div class="aui-card-list-content-padded">
+                            <p>处理人：缘尽</p>
+                            <p>处理时间：2017-09-12 10:32:32</p>
+                            <p>下一步处理人：张三</p>
+                            <p>操作类型：交办</p>
+                            <p>处理意见：尽快维修</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="aui-timeline-item-header aui-bg-info">审核 2017-09-12 10:32:32</div>
+            <div class="aui-timeline-item">
+                <div class="aui-timeline-item-inner">
+                    <div class="aui-card-list">
+                        <div class="aui-card-list-content-padded">
+                            <p>处理人：缘尽</p>
+                            <p>处理时间：2017-09-12 10:32:32</p>
+                            <p>下一步处理人：李四</p>
+                            <p>操作类型：交办</p>
+                            <p>处理意见：尽快维修</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="aui-timeline-item-header aui-bg-info">维修处理 2017-09-12 10:32:32</div>
+            <div class="aui-timeline-item">
+                <div class="aui-timeline-item-inner">
+                    <div class="aui-card-list">
+                        <div class="aui-card-list-content-padded">
+                            <p>处理人：缘尽</p>
+                            <p>处理时间：2017-09-12 10:32:32</p>
+                            <p>下一步处理人：李四</p>
+                            <p>操作类型：交办</p>
+                            <p>处理意见：尽快维修</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="aui-timeline-item-header aui-bg-danger">结束 2017-09-12 10:32:32</div>
+            <div class="aui-timeline-item">
+                <div class="aui-timeline-item-inner">
+                    <div class="aui-card-list">
+                        <div class="aui-card-list-content-padded">
+                            <p>处理人：缘尽</p>
+                            <p>处理时间：2017-09-12 10:32:32</p>
+                            <p>下一步处理人：</p>
+                            <p>操作类型：办结</p>
+                            <p>处理意见：尽快维修</p>
+                        </div>
+                    </div>
+                </div>
+            </div>-->
+        </div>
+    </div>
+  </body>
+  <script type="text/javascript" src="../../../script/api.js"></script>
+  <script type="text/javascript" src="../../../script/aui-toast.js"></script>
+  <script type="text/javascript" src="../../../script/zepto.min.js"></script>
+  <script type="text/javascript">
+  var url = $api.getStorage("gmms_url");
+  var toast = new auiToast();
+      apiready = function(){
+        api.parseTapmode();
+		var bsnum = api.pageParam.bsnum;
+		window.setTimeout(function(){
+			getData(bsnum);
+		},300);
+      };
+      
+      function getData(bsnum){
+      	toast.loading({
+            title:"加载中...",
+            duration:2000
+        });
+      		var operatType = {
+      			1:'交办',
+      			2:'收回',
+      			3:'退回',
+      			4:'作废',
+      			5:'办结',
+      			7:'挂起',
+      			8:'结束挂起'
+      		}
+      		api.ajax({
+	              url:url+ '/modules/mobile/defect/fault-repair-rbi!queryBusinessLogForApp.action?bsnum='+bsnum,
+	              method : 'get',
+	              timeout : 30
+              },function(ret,err){
+              	 var htmlStr = '';
+              	 var name = '';
+              	 var nameClass = '';
+              	 var idea = '';
+              	 var nextHandlerName = '';
+              	 if(ret){
+              	 	for(var k=0;k<ret.result.length;k++){              	 		
+						if(ret.result[k].name == 'start'){
+							name = '开始';
+							nameClass = 'aui-bg-success';
+						}
+						else if(ret.result[k].name == 'end'){
+							name = "结束";
+							nameClass = 'aui-bg-danger';
+						}
+						else{
+							name = ret.result[k].name;
+							nameClass = 'aui-bg-info';
+						}
+						
+						if(ret.result[k].idea != null){
+							idea = ret.result[k].idea;
+						}
+						else{
+							idea = '';
+						}
+						
+						if(ret.result[k].nextHandlerName != null){
+							nextHandlerName = ret.result[k].nextHandlerName;
+						}
+						else{
+							nextHandlerName = '';
+						}
+						console.log(nameClass)
+						htmlStr +=    '<div class="aui-timeline-item-header '+ nameClass +'">'+ name +'  '+ret.result[k].arriveTime+'</div>'+
+							          '  <div class="aui-timeline-item">                                                 '+
+							          '      <div class="aui-timeline-item-inner">                                       '+
+							          '          <div class="aui-card-list">                                             '+
+							          '              <div class="aui-card-list-content-padded">                          '+
+							          '                 <p>处理人：' + ret.result[k].handlerName + '</p>                    '+
+							          '                  <p>处理时间：' + ret.result[k].handleTime + '</p>                   '+
+							          '                  <p>下一步处理人：' + nextHandlerName + '</p>                          '+
+							          '                  <p>操作类型：' + operatType[ret.result[k].operatType] + '</p>       '+
+							          '                  <p>处理意见：' + idea + '</p>                                       '+
+							          '              </div>                                                              '+
+							          '          </div>                                                                  '+
+							          '      </div>                                                                      '+
+							          '  </div>                                                                          ';
+              	 	}
+              	 	$("#logContent").append(htmlStr);              	 	
+              	 }else{
+              	 	api.toast({msg:err.msg});
+              	 }
+              	 toast.hide();
+              });      	
+      }
+      
+  </script>
+  </html>
