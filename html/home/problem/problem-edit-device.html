@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .mui-control-item {
+            padding: 3px 0;
+            line-height: normal;
+        }
+    </style>
+</head>
+<body>
+<ul class="mui-table-view">
+    <li class="mui-table-view-cell ">
+        <span>
+            显示器
+        </span>
+        <span class="mui-pull-right">
+            入口
+        </span>
+    </li>
+    <li class="mui-table-view-cell " v-for="di in lstDeviceInstall">
+        <div>
+            <span style="color: #00acc1">
+            di.deviceName
+            </span>
+            <span class="mui-pull-right" style="color: #dedede">
+            3211000771200014
+            </span>
+        </div>
+        <div style="margin: 10px 0">飞利浦17寸</div>
+        <div class="mui-input-row">
+            <label style="width: 25%;margin-top: 7px; padding: 0;
+            line-height: unset">设备状态</label>
+            <div class="mui-segmented-control" style="width:auto;">
+                <a class="mui-control-item mui-active" style="line-height: normal" v-on:click="watchExigenceGrade(1)">
+                    正常
+                </a>
+                <a class="mui-control-item" style="line-height: normal;" v-on:click="watchExigenceGrade(2)">
+                    故障
+                </a>
+                <a class="mui-control-item " style="line-height: normal;" v-on:click="watchExigenceGrade(3)">
+                    不确定
+                </a>
+                <a class="mui-control-item " style="line-height: normal;" v-on:click="watchExigenceGrade(4)">
+                    报废
+                </a>
+
+            </div>
+        </div>
+        <div style="margin-top: 10px">
+
+            <button type="button" class="mui-btn mui-btn-outlined mui-pull-right">
+                装零配件
+            </button>
+            <button type="button" class="mui-btn mui-btn-danger mui-btn-outlined mui-pull-right"
+                    style="margin-right: 10px">
+                拆设备
+            </button>
+        </div>
+    </li>
+    <li class="mui-table-view-cell ">
+        <div >
+            <button type="button" class="mui-btn mui-btn-primary mui-btn-outlined mui-pull-right">
+                安装设备
+            </button>
+            <button type="button" class="mui-btn mui-btn-primary mui-btn-outlined mui-pull-right"
+                    style="margin-right: 10px">
+                设备拆装换记录
+            </button>
+        </div>
+    </li>
+</ul>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        alert(api.pageParam.pdId);
+        post("/modules/mobile/defect/problem-deal!queryDeviceInfoByProblem.action", {
+            pdId: api.pageParam.pdId,
+            userId: $api.getStorage('user').id
+        }, function (ret) {
+            alert(JSON.stringify(ret));
+        },function (ret) {
+            alert(JSON.stringify(ret));
+        });
+    };
+</script>
+</html>
