@@ -15,6 +15,11 @@
         .mui-header {
             background-color: #1081DA
         }
+
+        .card-backgroud {
+            background-color: red;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -22,9 +27,8 @@
     <h1 class="mui-title" style="color: white">选择系统</h1>
 </header>
 <div class="mui-content" id="item-selector">
-    <ul class="mui-table-view mui-grid-view mui-grid-9" style="background-color: white">
-        <item v-for="item in lstItems" :model="item"></item>
-    </ul>
+    <div v-if="lstSelectItem.length==0">请先选择所属区域再选择系统</div>
+    <item v-for="(lstItems,index) in lstSelectItem" :index="index" :list="lstItems"></item>
 </div>
 </div>
 </body>
@@ -35,58 +39,71 @@
 <script type="text/javascript" src="../../../../script/common.js"></script>
 <script type="text/javascript" src="../../../../script/http.js"></script>
 <script type="text/x-template" id="item-template">
-    <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3 " @click="toggle">
-        <div class="mui-media-body" style="font-size: 10px;"> {{ model.name }}</div>
-    </li>
+    <div>
+        <div style="padding-left: 10px">{{index+1}}</div>
+        <ul class="mui-table-view mui-grid-view mui-grid-9" style="background-color: white">
+            <li v-show="item.status<3" class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"
+                v-for="item in list"
+                style="border: 0;padding: 0" v-on:click="queryItemByItemParent(item.id,item.status)">
+                <div class="mui-card" :class="{'card-backgroud':item.status==2}">
+                    <div class="mui-card-content">
+                        <div class="mui-card-content-inner" style="padding: 5px 15px;word-wrap: break-word">
+                            {{item.name}}
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
 </script>
 <script type="text/javascript">
     var itemSelectorModel;
+    var index = 0;
     apiready = function () {
         initHeader();
         Vue.component('item', {
             template: '#item-template',
             props: {
-                model: Object
-            },
-            data: function () {
-                return {
-                    open: false,
-                    isSelected: false
-                }
-            },
-            computed: {
-                isFolder: function () {
-                    return this.model.children &&
-                        this.model.children.length
-                },
+                index: Number,
+                list: Array
             },
             methods: {
-                toggle: function () {
-                    this.isSelected = !this.isSelected
-                    if (this.isFolder) {
-                        this.open = !this.open
-                    }
+                queryItemByItemParent: function (itemId, status) {
+                    var item = null;
+                    $.each(this.list, function (i, tempItem) {
+                        if (tempItem.id == itemId) {
+                            item = tempItem;
+                        }
+                        if (status == 1 || status == 3) {
+                            if (tempItem.id == itemId) {
+                                tempItem.status = 2;
+                            } else {
+                                tempItem.status = 3;
+                            }
+                        } else {
+                            tempItem.status = 1;
+                        }
+                    });
+                    var name = item.treeName;
+                    var isSelect = status == 3 || status == 1;
+                    var itemId = isSelect ? item.id : item.parentId;
+                    var ekecType = isSelect ? item.elecType : item.parentElecType;
                     api.execScript({
                         name: 'problem-register-win',
                         frameName: 'problem-register',
-                        script: 'fnsetItem("' + this.model.treeName + '",' + this.isSelected + ');'
+                        script: 'fnsetItem("' + name + '",' + isSelect + ',' + itemId + ',"'+ekecType+'");'
                     });
-                    if (!this.isFolder && this.isSelected) {
-                        Vue.set(this.model, 'children', []);
-                        this.queryItemByItemParent(this.model.id);
-                    }
-
-                },
-                queryItemByItemParent: function (itemId) {
-                    var model1 = this.model;
-                    this.open = true;
-                    post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", {
-                        itemParentId: itemId
-                    }, function (ret) {
-                        $.each(ret.data, function (i, item) {
-                            model1.children.push(item);
+                    if (isSelect) {
+                        post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", {
+                            itemParentId: itemId
+                        }, function (ret) {
+                            if (ret.data.length > 0) {
+                                itemSelectorModel.lstSelectItem.push(ret.data);
+                            }
                         });
-                    });
+                    } else {
+                        itemSelectorModel.lstSelectItem.splice(this.index + 1, itemSelectorModel.lstSelectItem.length - this.index - 1);
+                    }
 
                 }
             }
@@ -94,7 +111,7 @@
         itemSelectorModel = new Vue({
             el: '#item-selector',
             data: {
-                lstItems: []
+                lstSelectItem: [],
             }
         });
     };
@@ -102,9 +119,8 @@
         post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", {
             zoneId: zondId
         }, function (ret) {
-            $.each(ret.data, function (i, item) {
-                itemSelectorModel.lstItems.push(item);
-            });
+            itemSelectorModel.lstSelectItem = [];
+            itemSelectorModel.lstSelectItem.push(ret.data);
         });
     }
 </script>

@@ -72,7 +72,6 @@
     <input type="hidden" name="bsnum"/>
     <input type="hidden" name="documentId">
     <input type="hidden" id="problem_discoverTime"/>
-    <input type="hidden" id="problem_createTime"/>
     <input type="hidden" name="problem.id"/>
     <input type="hidden" name="problem.problemStatus.id" id="problem_problemStatus_id" value="2"/>
     <input type="hidden" name="problem.planType.id" id="problem_planType_id" value="1"/>
@@ -83,12 +82,26 @@
             <li class="aui-list-header">处理时间</li>
             <li class="aui-list-item">
                 <div class="aui-list-item-inner">
-                    <div class="aui-list-item-label">开始时间</div>
+                    <div class="aui-list-item-label">登记时间</div>
+                    <div class="aui-list-item-input">
+                        <input readonly="readonly" id="problem_createTime"
+                               type="text" tapmode/>
+                    </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label" style="line-height: normal">
+                        开始时间<br>
+                    </div>
                     <div class="aui-list-item-input">
                         <input readonly="readonly" id="problemDisposal_startTime" name="problemDisposal.startTime"
                                type="text" placeholder="处理开始时间" tapmode/>
                     </div>
                 </div>
+            </li>
+            <li class="aui-list-header" style="background-color: #fff;color: #757575;">
+                处理开始时间不能早于登记时间
             </li>
             <li class="aui-list-item">
                 <div class="aui-list-item-inner">
@@ -570,34 +583,12 @@
                 buttons: ['是', '否']
             }, function (ret, err) {
                 if (ret.buttonIndex == 1) {
-                    toast.loading({
-                        title: "提交中...",
-                        duration: 2000
-                    });
-                    $(_this).attr('disabled', 'disabled');
                     var formData = $('#disposal_form').serializeObject();
-                    alert(JSON.stringify(formData));
-                    formData['specialFlag']=true;
                     formData.userId = cur_user.id;
-                    api.ajax({
-                        url: serverUrl + '/modules/mobile/defect/fault-repair-rbi!saveFlow.action',
-                        method: 'POST',
-                        timeout: 15,
-                        data: {
-                            values: formData,
-                        }
-                    }, function (ret, err) {
-                        alert(JSON.stringify(ret));
-                        toast.hide();
-                        $(_this).removeAttr('disabled');
-                        if (ret) {
-                            var resultMap = JSON.parse(ret);
-                            fnHeaderWin("设备操作", "problem-edit-device", '/home/problem/problem-edit-device.html', {
-                                pdId: resultMap.keyId,
-                            });
-                        } else {
-                            api.toast({msg: err.msg});
-                        }
+                    fnHeaderWin("设备操作", "problem-edit-device", '/home/problem/problem-edit-device.html', {
+                        formData: formData,
+                        devicePlaceIds: $("input[name='problemDisposal.devicePlaceIds']").val(),
+                        problemId: $("input[name='problem.id']").val()
                     });
 
                 } else if (ret.buttonIndex == 2) {

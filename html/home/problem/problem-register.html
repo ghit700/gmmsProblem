@@ -42,16 +42,6 @@
             height: auto;
         }
 
-        .mui-content.mui-scroll-wrapper {
-
-            overflow: auto;
-
-        }
-
-        .mui-slider.mui-fullscreen .mui-slider-group .mui-control-content .mui-scroll-wrapper {
-            overflow: auto;
-        }
-
         .mui-control-item {
             padding: 5px 0;
             line-height: normal;
@@ -65,8 +55,7 @@
     <li class="mui-table-view-cell " style="padding: 15px">
         <div class="mui-input-row">
             <label><label style="color: red;width: auto">*</label>所属区域</label>
-            <select v-model="zoneId" class="mui-btn" style="width: auto;padding: 0;margin: 0;float: left;height: auto"
-                    v-on:change="queryItemByParent(zone.id,false)">
+            <select v-model="zoneId" class="mui-btn" style="width: auto;padding: 0;margin: 0;float: left;height: auto">
                 <option disabled value="">选择区域</option>
                 <option v-for="zone in lstZones" v-bind:value="zone.id">{{zone.name}}</option>
             </select>
@@ -84,20 +73,65 @@
             <input type="text" placeholder="请输入" v-model="problemPlace">
         </div>
     </li>
-</ul>
-<ul id="problem-desc" class="mui-table-view" style="margin-top: 10px">
-    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">2</span><span
-            class="circle-span-title-text">故障详情</span></li>
-    <li class="mui-table-view-cell " style="padding: 15px">
+    <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E01'">
         <div class="mui-input-row">
-            <label>问题描述(语音)</label>
+            <label style="width: 25%;margin-top: 5px;margin-left: 5px">车道是否关闭</label>
+            <div class="mui-segmented-control" style="width: 73%;">
+                <a class="mui-control-item " style="line-height: normal" v-on:click="isEffect=true">
+                    是
+                </a>
+                <a class="mui-control-item " style="line-height: normal" v-on:click="isEffect=false">
+                    否
+                </a>
+            </div>
         </div>
     </li>
+    <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E01'&&isEffect!=''">
+        <div class="mui-input-row">
+            <label style="width: 25%;margin-top: 5px;margin-left: 5px">土建车道</label>
+            <div style="width: 73%;">
+                <select class="mui-btn" style="width: 30%;padding: 0;margin: 0;float: left;height: auto">
+                    <option disabled value="">--选择--</option>
+                </select>
+                <select class="mui-btn" style="width: 30%;padding: 0;margin: 0;float: left;height: auto">
+                    <option disabled value="">--选择--</option>
+                </select>
+                <select class="mui-btn" style="width: 30%;padding: 0;margin: 0;float: left;height: auto">
+                    <option disabled value="">--选择--</option>
+                </select>
+            </div>
+        </div>
+    </li>
+    <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E01'&&isEffect!=''">
+        <div class="mui-input-row">
+            <label style="width: 25%;margin-top: 5px;margin-left: 5px">车道性质</label>
+            <select class="mui-btn" style="width: auto;padding: 0;margin: 0;float: left;height: auto">
+                <option disabled value="">--选择--</option>
+            </select>
+        </div>
+    </li>
+</ul>
+<ul id="problem-desc" class="mui-table-view" style="margin-top: 10px">
+
+    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">2</span><span
+            class="circle-span-title-text">故障详情</span></li>
+    <!--<li class="mui-table-view-cell " style="padding: 15px">-->
+    <!--<div class="mui-input-row">-->
+    <!--<label>问题描述(语音)</label>-->
+    <!--<div style="width: 64%" onclick="startRecord()">-->
+    <!--<span class="mui-icon mui-icon-mic" style="color: #3d3d3d"></span><span style="color: #3d3d3d">录音</span>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</li>-->
     <li class="mui-table-view-cell " style="padding: 15px">
         <div class="mui-input-row">
-            <label><label style="color: red;width: auto">*</label>问题描述(文字)</label>
-            <input type="text" placeholder="请填写内容" v-model="problemDesc">
+            <label><label style="color: red;width: auto">*</label>问题描述</label>
+            <textarea id="textarea" rows="5" placeholder="请填写问题描述" v-model="problemDesc"
+                      style="padding: 0;margin-right: 30px;width: 54%">
 
+            </textarea>
+            <span onclick="startRecord()" class="mui-icon mui-icon-mic"
+                  style="position:absolute;right:0;top:50px;color: #3d3d3d"></span>
         </div>
     </li>
     <li class="mui-table-view-cell" style="padding: 15px">
@@ -106,12 +140,19 @@
         </div>
         <div class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted"
              style="height: 80px;margin-top: 5px;">
-            <div class="mui-scroll" >
-                <img v-for="(photo,index) in lstPhotos" style="width:80px;height: 80px;margin-right: 5px"
-                     v-bind:src="photo"
-                     v-on:click="showPhoto(index)">
-                <img v-show="lstPhotos.length<6" style="height: 80px" src="../../../image/down_arrow.png"
+            <div class="mui-scroll">
+                <a style="width: 80px;height: 80px;position: relative" v-for="(photo,index) in lstPhotos">
+                    <img style="width:80px;height: 80px;margin-right: 5px"
+                         v-bind:src="photo"
+                         v-on:click="showPhoto(index)">
+                    <img src="../../../image/remove.png" v-on:click="removePhoto(index)"
+                         style="position: absolute;right: 0;width: 30px">
+                </a>
+                <img v-show="lstPhotos.length<6" style="width: 80px;height: 80px;position: relative"
                      v-on:click="getPicture('pic')">
+                <span class="mui-icon mui-icon-plusempty" v-on:click="getPicture('pic')"
+                      style="position: absolute;top: 19px;left: 12px;border: 0;font-size: 50px;color: #dedede"></span>
+                </img>
             </div>
         </div>
     </li>
@@ -122,12 +163,23 @@
         <div class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted"
              style="height: 80px;margin-top: 5px">
             <div class="mui-scroll">
-                <img v-for="video in lstVideos" style="width:80px;height: 80px;margin-right: 5px"
-                     v-bind:src="video.thumbPath"
-                     v-on:click="showVideo(video.url)">
 
-                <img v-show="lstVideos.length<6" style="height: 80px" src="../../../image/down_arrow.png"
+                <a v-for="(video,index) in lstVideos" style="width: 80px;height: 80px;position: relative"
+                >
+                    <img style="width:80px;height: 80px;margin-right: 5px"
+                         v-bind:src="video.thumbPath"
+                         v-on:click="showVideo(video.url)">
+                    <img src="../../../image/play.png"
+                         style="position: absolute;left: 25px;bottom:25px;width: 30px"
+                         v-on:click="showVideo(video.url)">
+                    <img src="../../../image/remove.png" v-on:click="removeVideo(index)"
+                         style="position: absolute;right: 0;width: 30px">
+                </a>
+                <img v-show="lstVideos.length<6" style="width: 80px;height: 80px;position: relative"
                      v-on:click="getPicture('video')">
+                <span class="mui-icon mui-icon-camera" v-on:click="getPicture('video')"
+                      style="position: absolute;top: 19px;left: 12px;border: 0;font-size: 50px;color: #dedede"></span>
+                </img>
             </div>
         </div>
     </li>
@@ -135,7 +187,7 @@
         <div class="mui-input-row">
             <label style="width: 25%;margin-top: 5px;margin-left: 5px">影响程度</label>
             <div class="mui-segmented-control" style="width: 73%;">
-                <a class="mui-control-item " style="line-height: normal" v-on:click="watchSeriousGrade(1)">
+                <a class="mui-control-item mui-active" style="line-height: normal" v-on:click="watchSeriousGrade(1)">
                     一般
                 </a>
                 <a class="mui-control-item " style="line-height: normal" v-on:click="watchSeriousGrade(2)">
@@ -148,7 +200,7 @@
         <div class="mui-input-row">
             <label style="width: 25%;margin-top: 5px;margin-left: 5px">紧急程度</label>
             <div class="mui-segmented-control" style="width: 73%;">
-                <a class="mui-control-item " style="line-height: normal" v-on:click="watchExigenceGrade(1)">
+                <a class="mui-control-item mui-active" style="line-height: normal" v-on:click="watchExigenceGrade(1)">
                     一级(最高)
                 </a>
                 <a class="mui-control-item" style="line-height: normal;" v-on:click="watchExigenceGrade(2)">
@@ -179,7 +231,7 @@
     </li>
 </ul>
 <div style="margin-top: 10px;margin-bottom: 5px;margin-left: 25px;margin-right: 25px;">
-    <button type="button" class="mui-btn-primary mui-btn mui-btn-block">提交</button>
+    <button type="button" class="mui-btn-primary mui-btn mui-btn-block" onclick="submitProblem()">提交</button>
 </div>
 </body>
 <script type="text/javascript" src="../../../script/api.js"></script>
@@ -189,7 +241,7 @@
 <script type="text/javascript" src="../../../script/db.js"></script>
 <script type="text/javascript" src="../../../script/picker.min.js"></script>
 <script type="text/javascript" src="../../../script/date.picker.js"></script>
-<script type="text/javascript" src="../../../script/vue.js"></script>
+<script type="text/javascript" src="../../../script/vue.min.js"></script>
 <script type="text/javascript">
     var placeModel;
     var descModel;
@@ -211,24 +263,12 @@
                 lstZones: [],
                 zoneId: "",
                 problemPlace: "",
+                itemId: "",
+                elecType: "",
+                isEffect: "",
                 item: ""
             },
             methods: {
-                queryItemByParent: function (id, isParent) {
-                    var param;
-                    if (isParent) {
-                        param = {
-                            itemParentId: id
-                        }
-                    } else {
-                        param = {
-                            zoneId: id
-                        }
-
-                    }
-                    post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", param, function (ret) {
-                    });
-                },
                 openItemSeletor: function () {
                     api.openDrawerPane({
                         type: 'right'
@@ -238,13 +278,15 @@
             watch: {
                 zoneId: function (newQuestion, oldQuestion) {
                     if (newQuestion != oldQuestion && newQuestion != "") {
-                        this.queryItemByParent(newQuestion, false);
                         api.execScript({
                             name: 'sel_item',
                             script: 'loadZoneId(' + newQuestion + ');'
                         });
 
                     }
+                },
+                elecType: function (newQuestion, oldQuestion) {
+
                 }
             }
         });
@@ -258,12 +300,17 @@
         });
         descModel = new Vue({
             el: '#problem-desc',
+            updated: function () {
+                mui('.mui-scroll-wrapper').scroll({
+                    deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+                });
+            },
             data: {
                 lstVideos: [],
-                seriousGrade: "",//影响程度
-                exigenceGrade: "",//紧急程度
+                seriousGrade: 1,//影响程度
+                exigenceGrade: 1,//紧急程度
                 problemDesc: "",
-                lstPhotos: ['../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png', '../../../image/down_arrow.png'],
+                lstPhotos: [],
             },
             methods: {
                 getPicture: function (mediaValue) {
@@ -307,6 +354,12 @@
                         activeIndex: index,
                         showList: false
                     });
+                },
+                removePhoto: function (index) {
+                    descModel.lstPhotos.splice(index, 1);
+                },
+                removeVideo: function (index) {
+                    descModel.lstVideos.splice(index, 1);
                 }
             }
         });
@@ -379,7 +432,9 @@
         peopleTimeModel.discoverUserId = ids;
     }
     //设置选择后的系统
-    function fnsetItem(itemName, isSelected) {
+    function fnsetItem(itemName, isSelected, itemId, elecType) {
+        placeModel.itemId = itemId;
+        placeModel.elecType = elecType;
         if (isSelected) {
             placeModel.item = itemName;
         } else {
@@ -389,6 +444,51 @@
                 placeModel.item = "";
             }
         }
+    }
+    //语音转化页面
+    function startRecord() {
+        api.openFrame({
+            name: 'problem-mic',
+            url: './problem-mic.html',
+            rect: {
+                x: 0,
+                y: api.winHeight / 2,
+                w: 'auto',
+                h: 'auto'
+            },
+            animation: {
+                type: "movein",                //动画类型（详见动画类型常量）
+                subType: "from_bottom",
+                duration: 300
+            }
+        });
+    }
+    function micWordStr(work) {
+        descModel.problemDesc = work;
+    }
+    //提交故障
+    function submitProblem() {
+        if (placeModel.zoneId == "") {
+            alert('请选择所属区域');
+            return;
+        }
+        if (placeModel.item == '') {
+            alert('请选择所属系统');
+            return;
+        }
+        if (placeModel.problemPlace == '') {
+            alert('请输入故障位置');
+            return;
+        }
+        if (descModel.problemDesc == '') {
+            alert('请输入问题描述');
+            return;
+        }
+        if (timeModel.discoverTime == '') {
+            alert('请选择发现时间');
+            return;
+        }
+
     }
 
 </script>
