@@ -73,6 +73,7 @@
             <input type="text" placeholder="请输入" v-model="problemPlace">
         </div>
     </li>
+    <!--收费系统EO1-->
     <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E01'">
         <div class="mui-input-row">
             <label style="width: 25%;margin-top: 5px;margin-left: 5px">车道是否关闭</label>
@@ -83,31 +84,62 @@
                 <a class="mui-control-item " style="line-height: normal" v-on:click="isEffect=false">
                     否
                 </a>
+
             </div>
         </div>
     </li>
     <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E01'&&isEffect!=''">
         <div class="mui-input-row">
-            <label style="width: 25%;margin-top: 5px;margin-left: 5px">土建车道</label>
-            <div style="width: 73%;">
-                <select class="mui-btn" style="width: 30%;padding: 0;margin: 0;float: left;height: auto">
-                    <option disabled value="">--选择--</option>
+            <label style="width:25%;padding-top: 3px">土建车道</label>
+            <div style="width: 73%">
+                <select class="mui-btn" v-model="controlgroupId"
+                        style="padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                    <option disabled value="">选择</option>
+                    <option v-for="zone in lstZones" v-bind:value="zone.id">{{zone.name}}</option>
                 </select>
-                <select class="mui-btn" style="width: 30%;padding: 0;margin: 0;float: left;height: auto">
-                    <option disabled value="">--选择--</option>
+                <select class="mui-btn" v-model="roadLineId"
+                        style="padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                    <option disabled value="">选择</option>
+                    <option v-for="roadLine in lstRoadLine" v-bind:value="roadLine.id">{{roadLine.name}}</option>
                 </select>
-                <select class="mui-btn" style="width: 30%;padding: 0;margin: 0;float: left;height: auto">
-                    <option disabled value="">--选择--</option>
+                <select class="mui-btn" v-model="laneId"
+                        style="padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                    <option disabled value="">选择</option>
+                    <option v-for="lane in lstLanes" v-bind:value="lane.id">{{lane.name}}</option>
                 </select>
             </div>
+
         </div>
     </li>
+
     <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E01'&&isEffect!=''">
         <div class="mui-input-row">
-            <label style="width: 25%;margin-top: 5px;margin-left: 5px">车道性质</label>
-            <select class="mui-btn" style="width: auto;padding: 0;margin: 0;float: left;height: auto">
-                <option disabled value="">--选择--</option>
+            <label>车道性质</label>
+            <select class="mui-btn" v-model="carriageWayId"
+                    style="width: auto;padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                <option disabled value="">选择</option>
+                <option v-for="way in lstCarriageWay" v-bind:value="way.id">{{way.name}}</option>
             </select>
+        </div>
+    </li>
+    <!--监控系统EO2-->
+    <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E02'">
+        <div class="mui-input-row">
+            <label style="width: 25%;margin-top: 5px;margin-left: 5px">交通监控故障</label>
+            <div class="mui-segmented-control" style="width: 73%;">
+                <a class="mui-control-item " style="line-height: normal" v-on:click="isInterboard=true">
+                    情报板故障
+                </a>
+                <a class="mui-control-item " style="line-height: normal" v-on:click="isInterboard=false">
+                    摄像机故障
+                </a>
+            </div>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px" v-if="elecType=='E02'&&isInterboard!=''">
+        <div class="mui-input-row">
+            <label>功能位置</label>
+            <input type="text" readonly="readonly" placeholder="请选择功能位置" v-model="dpName" v-on:click="openDpSeletor()">
         </div>
     </li>
 </ul>
@@ -148,11 +180,13 @@
                     <img src="../../../image/remove.png" v-on:click="removePhoto(index)"
                          style="position: absolute;right: 0;width: 30px">
                 </a>
-                <img v-show="lstPhotos.length<6" style="width: 80px;height: 80px;position: relative"
-                     v-on:click="getPicture('pic')">
-                <span class="mui-icon mui-icon-plusempty" v-on:click="getPicture('pic')"
-                      style="position: absolute;top: 19px;left: 12px;border: 0;font-size: 50px;color: #dedede"></span>
-                </img>
+                <a style="width: 80px;height: 80px;position: relative">
+                    <img v-show="lstPhotos.length<6" style="width: 80px;height: 80px;"
+                         v-on:click="getPicture('pic')">
+                    </img>
+                    <span class="mui-icon mui-icon-plusempty" v-on:click="getPicture('pic')"
+                          style="position: absolute;top: 19px;left: 12px;border: 0;font-size: 50px;color: #dedede"></span>
+                </a>
             </div>
         </div>
     </li>
@@ -200,20 +234,21 @@
         <div class="mui-input-row">
             <label style="width: 25%;margin-top: 5px;margin-left: 5px">紧急程度</label>
             <div class="mui-segmented-control" style="width: 73%;">
-                <a class="mui-control-item mui-active" style="line-height: normal" v-on:click="watchExigenceGrade(1)">
+                <a class="mui-control-item" style="line-height: normal" v-on:click="watchExigenceGrade(1)">
                     一级(最高)
                 </a>
                 <a class="mui-control-item" style="line-height: normal;" v-on:click="watchExigenceGrade(2)">
                     二级
                 </a>
-                <a class="mui-control-item " style="line-height: normal;" v-on:click="watchExigenceGrade(3)">
+                <a class="mui-control-item  mui-active " style="line-height: normal;"
+                   v-on:click="watchExigenceGrade(3)">
                     三级
                 </a>
             </div>
         </div>
     </li>
 </ul>
-<ul id="people-time" class="mui-table-view" style="margin-top: 10px">
+<ul id="people-time" class="mui-table-view" style="margin-top: 10px" v-cloak>
     <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">3</span><span
             class="circle-span-title-text">人员时间</span></li>
     <li class="mui-table-view-cell " style="padding: 15px">
@@ -242,36 +277,67 @@
 <script type="text/javascript" src="../../../script/picker.min.js"></script>
 <script type="text/javascript" src="../../../script/date.picker.js"></script>
 <script type="text/javascript" src="../../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
 <script type="text/javascript">
     var placeModel;
     var descModel;
     var peopleTimeModel;
+    var bsnumData;
     apiready = function () {
         initData();
         placeModel = new Vue({
             el: '#problem-place',
             created: function () {
-                post("/modules/mobile/maintain/zone-user!userZones.action", {
+                postNone("/modules/mobile/maintain/zone-user!userZones.action", {
                     userId: $api.getStorage('user').id
-                }, function (ret) {
-                    $.each(ret.data, function (i, zone) {
-                        placeModel.lstZones.push(zone);
-                    });
+                }, function (ret, err) {
+                    if (ret.success) {
+                        $.each(ret.data, function (i, zone) {
+                            placeModel.lstZones.push(zone);
+                        });
+                    }
                 });
             },
             data: {
                 lstZones: [],
+                lstRoadLine: [],
+                lstCarriageWay: [],
+                lstLanes: [],
                 zoneId: "",
                 problemPlace: "",
                 itemId: "",
                 elecType: "",
                 isEffect: "",
-                item: ""
+                item: "",
+                controlgroupId: "",
+                roadLineId: "",
+                carriageWayId: "",
+                laneId: "",
+                isInterboard: "",
+                dpName: "",
+                dpId: ""
             },
             methods: {
+                //打开系统选择页面
                 openItemSeletor: function () {
                     api.openDrawerPane({
                         type: 'right'
+                    });
+                },
+                openDpSeletor: function () {
+                    api.openWin({
+                        name: 'problem-device-select-win',
+                        url: './problem-device-select-header.html',
+                        reload: true,
+                        pageParam: {
+                            name: '选择功能位置',
+                            frameName: 'sel_device_place',
+                            openFrameName: api.pageParam.frameName,
+                            method: 'fnsetDp();',
+                            url: 'widget://html/home/problem/select/sel_device_place.html',
+                            zoneId: placeModel.zoneId,
+                            isInterboard: placeModel.isInterboard
+                        }
                     });
                 }
             },
@@ -286,18 +352,86 @@
                     }
                 },
                 elecType: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion) {
+                        clearEO1();
+                        clearEO2();
+                        placeModel.isInterboard = "";
+                        placeModel.isEffect = "";
+                    }
+                },
+                isEffect: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion) {
+                        clearEO1();
+                        clearEO2();
+                    }
+                },
+                isInterboard: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion) {
+                        clearEO1();
+                        clearEO2();
+                    }
+                },
+                //选择车道
+                laneId: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion && newQuestion != "" && this.problemPlace == "") {
+                        console.log(newQuestion);
+                        $.each(this.lstLanes, function (i, lane) {
+                            if (lane.id == newQuestion) {
+                                this.problemPlace = lane.name;
+                            }
+                        });
+                    }
+                },
+                controlgroupId: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion && newQuestion != "") {
+                        placeModel.roadLineId = "";
+                        placeModel.carriageWayId = "";
+                        placeModel.laneId = "";
+                        post("/modules/mobile/maintain/zone-user!queryZonePlace.action", {
+                            zoneId: newQuestion,
+                            userId: $api.getStorage('user').id
+                        }, function (ret) {
+                            placeModel.lstRoadLine = [];
+                            $.each(ret.data, function (i, rol) {
+                                placeModel.lstRoadLine.push(rol);
+                            });
+                        });
+                    }
+                },
+                roadLineId: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion && newQuestion != "") {
+                        placeModel.carriageWayId = "";
+                        placeModel.laneId = "";
+                        post("/modules/mobile/maintain/zone-user!queryLanes.action", {
+                            userId: $api.getStorage('user').id,
+                            roadLineId: newQuestion
+                        }, function (ret) {
+                            placeModel.lstLanes = [];
+                            $.each(ret.data, function (i, lane) {
+                                placeModel.lstLanes.push(lane);
+                            });
 
+                        });
+                    }
+                },
+                laneId: function (newQuestion, oldQuestion) {
+                    if (newQuestion != oldQuestion && newQuestion != "") {
+                        placeModel.carriageWayId = "";
+                        post("/modules/mobile/maintain/zone-user!querylaneLogic.action", {
+                            userId: $api.getStorage('user').id,
+                            laneId: newQuestion
+                        }, function (ret) {
+                            placeModel.lstCarriageWay = [];
+                            $.each(ret.data, function (i, way) {
+                                placeModel.lstCarriageWay.push(way);
+                            });
+                        });
+                    }
                 }
+
             }
         });
-        peopleTimeModel = new Vue({
-            el: '#people-time',
-            data: {
-                discoverTime: "",
-                discoverUserId: $api.getStorage('user').id,
-                discoverUserName: $api.getStorage('user').name,
-            },
-        });
+
         descModel = new Vue({
             el: '#problem-desc',
             updated: function () {
@@ -308,7 +442,7 @@
             data: {
                 lstVideos: [],
                 seriousGrade: 1,//影响程度
-                exigenceGrade: 1,//紧急程度
+                exigenceGrade: 3,//紧急程度
                 problemDesc: "",
                 lstPhotos: [],
             },
@@ -328,10 +462,10 @@
                         if (ret) {
                             if (mediaValue == 'video') {
                                 window.setTimeout(function () {
-                                    savethumbnail(ret.data);
+                                    savethumbnail(ret.base64Data);
                                 }, 1000);
                             } else {
-                                descModel.lstPhotos.push(ret.data);
+                                descModel.lstPhotos.push(ret.base64Data);
                             }
                         }
                     })
@@ -362,6 +496,15 @@
                     descModel.lstVideos.splice(index, 1);
                 }
             }
+        });
+        peopleTimeModel = new Vue({
+            el: '#people-time',
+            data: {
+                discoverTime: "",
+                createTime: new Date(),//登记时间
+                discoverUserId: $api.getStorage('user').id,
+                discoverUserName: $api.getStorage('user').name,
+            },
         });
     };
 
@@ -403,7 +546,7 @@
             frameBounces: true,
             type: 'datetime'
         }, function (ret) {
-            $('#problem_discover_time').val(ret.year + '-' + ret.month + '-' + ret.day + ' ' + ret.hour + ':' + ret.min + ':00');
+            peopleTimeModel.discoverTime = ret.year + '-' + ret.month + '-' + ret.day + ' ' + ret.hour + ':' + ret.min + ':00';
         });
     }
     var startTimePicker;
@@ -433,6 +576,10 @@
     }
     //设置选择后的系统
     function fnsetItem(itemName, isSelected, itemId, elecType) {
+        placeModel.roadLineId = "";
+        placeModel.carriageWayId = "";
+        placeModel.laneId = "";
+        placeModel.controlgroupId = "";
         placeModel.itemId = itemId;
         placeModel.elecType = elecType;
         if (isSelected) {
@@ -444,6 +591,26 @@
                 placeModel.item = "";
             }
         }
+    }
+    //选择功能位置
+    function fnsetDp(id, name) {
+        placeModel.dpName = name;
+        placeModel.dpId = id;
+    }
+    //收费系统
+    function clearEO1() {
+        placeModel.lstRoadLine = [];
+        placeModel.lstCarriageWay = [];
+        placeModel.lstLanes = [];
+        placeModel.controlgroupId = "";
+        placeModel.roadLineId = "";
+        placeModel.carriageWayId = "";
+        placeModel.laneId = "";
+    }
+    //监控系统
+    function clearEO2() {
+        placeModel.dpName = "";
+        placeModel.dpId = "";
     }
     //语音转化页面
     function startRecord() {
@@ -484,10 +651,38 @@
             alert('请输入问题描述');
             return;
         }
-        if (timeModel.discoverTime == '') {
+        if (peopleTimeModel.discoverTime == '') {
             alert('请选择发现时间');
             return;
         }
+        var problem = {
+            'zone.id': placeModel.zoneId,
+            'item.id': placeModel.itemId,
+            'place': placeModel.problemPlace,
+            'seriousGrade': descModel.seriousGrade,
+            'exigenceGrade': descModel.exigenceGrade,
+            'description': descModel.problemDesc,
+            'creator.id': $api.getStorage('user').id,
+            'createTime': peopleTimeModel.createTime,
+            'problem.discoverIds': peopleTimeModel.discoverUserId,
+            'problem.discoverNames': peopleTimeModel.discoverUserName,
+            'problem.discoverTime': peopleTimeModel.discoverTime,
+            'isEffect': placeModel.isEffect,
+            'isInterboard': placeModel.isInterboard,
+            'carriageType': placeModel.carriageWayId,
+            'devicePlace.id': placeModel.dpId,
+            'carriageWay.id': placeModel.laneId,
+            'isVidicon': placeModel.isInterboard == "" ? "" : placeModel.isInterboard,
+            "lesseeId": $api.getStorage('user').lesseeId
+        };
+        var files = {
+            lstPhotos: descModel.lstPhotos,
+            lstVideos: descModel.lstVideos
+        };
+        fnHeaderWin("故障提交", 'problem-add_submit', '/home/problem/problem-add_submit.html', {
+            problem: problem,
+            files: files
+        })
 
     }
 

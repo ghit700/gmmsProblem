@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .mui-scroll-container img {
+            width: 18px;
+            height: 18px;
+            margin-left: 2px;
+        }
+
+        .mui-scroll-container {
+            position: relative;
+            border-bottom: 1px #dedede solid;
+            border-top: 1px #dedede solid;
+            background-color: white;
+            margin-top: 5px;
+            padding-bottom: 10px;
+        }
+
+        .mui-scroll-container:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-scroll-container div {
+            position: absolute;
+            right: 15px;
+            border-radius: 5px;
+            text-align: center;
+            padding: 2px;
+            top: 50%;
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            -o-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+
+        .mui-scroll-container h4 {
+            font-size: 20px;
+            padding-left: 10px;
+            padding-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="mui-content">
+    <div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted">
+    </div>
+    <div class="mui-control-content mui-active">
+        <div class="mui-scroll-wrapper">
+            <div id="container" class="mui-scroll">
+                
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        var TopHeight = $('#sliderSegmentedControl').height() + $('#sliderProgressBar').height();
+        $('.mui-control-content').css('margin-top', TopHeight);
+        $('.mui-control-content').css('min-height', api.frameHeight - TopHeight - 40);
+        mui('.mui-scroll-wrapper').scroll({
+            deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+        });
+        queryItem();
+
+    };
+    function queryItem() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '获取数据中...',
+            modal: true
+        });
+        if (api.pageParam.request != 'check') {
+            post("/modules/mobile/task/fire-task!queryDevicePlaceCheckSituationItem.action", {
+                taskIds: api.pageParam.taskIds,
+                roadId: api.pageParam.roadId,
+                type: api.pageParam.type,
+                request: api.pageParam.request,
+            }, function (ret) {
+                if (ret.data.length > 0) {
+                    $.each(ret.data, function (i, item) {
+                        if (i == 0) {
+                            $('#segmentedControl').append('<a class="mui-control-item mui-active" >' + item.name + '</a>');
+                        } else {
+                            $('#segmentedControl').append('<a class="mui-control-item " >' + item.name + '</a>');
+                        }
+                    });
+                    $('.mui-control-item ').on('tap', function () {
+                        queryItemDp($(this).html());
+                    });
+                    window.setTimeout(function () {
+                        queryItemDp(ret.data[0].name);
+                    },500);
+                }
+            });
+        }
+    }
+
+    function queryItemDp(itemKey) {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '获取数据中...',
+            modal: true
+        });
+        if (api.pageParam.request != 'check') {
+            post("/modules/mobile/task/fire-task!queryDevicePlaceCheckSituationByItemProblem.action", {
+                taskIds: api.pageParam.taskIds,
+                roadId: api.pageParam.roadId,
+                type: api.pageParam.type,
+                request: api.pageParam.request,
+                itemKey: itemKey
+            }, function (ret) {
+                if (ret.data.length > 0) {
+                    loadHtml(ret.data);
+                }
+            });
+        }
+    }
+
+    function loadHtml(data) {
+        var html = "";
+        $.each(data, function (i, item) {
+            var tempHtml = item.count + '个';
+            if (item.coverageRate != undefined) {
+                tempHtml = item.coverageRate + '%';
+            } else if (api.pageParam.request == 'problem') {
+                tempHtml = item.nonCheckCount + "/" + item.count;
+            }
+            html += '<div class="mui-scroll-container" tapmode="active" onclick="fnDevicePlaceList(\'' + item.name + '\')"><h4 style=" font-size:16px;font-weight:normal">' + item.name + '<span style="position: absolute;right: 10px;">' + tempHtml + '</span></h4> </div>';
+
+        });
+        console.log(html);
+        $('#container').html(html);
+    }
+
+    function fnDevicePlaceList(itemName) {
+        if (api.pageParam.request == 'problem') {
+            var title = itemName;
+            switch (api.pageParam.type) {
+                case 1 :
+                    title += '(年检查)';
+                    break;
+                case 2 :
+                    title += '(季检查)';
+                    break;
+                case 3 :
+                    title += '(月检查)';
+                    break;
+                case 4 :
+                    title += '(周检查)';
+                    break;
+                case 5 :
+                    title += '(日检查)';
+                    break;
+                case 0 :
+                    title += '(夜间检查)';
+                    break;
+            }
+            fnHeaderWin(title, 'report-problem-repairt-list', '/home/report/report-problem-repairt-list.html', {
+                taskIds: api.pageParam.taskIds,
+                itemName: itemName,
+            });
+        } else if (api.pageParam.request == 'check') {
+            fnHeaderWin(itemName, 'report-content-dp', '/home/report/report-content-dp.html', {
+                itemName: itemName,
+                time: api.pageParam.time,
+            });
+        } else {
+            var title = itemName;
+            switch (api.pageParam.type) {
+                case 1 :
+                    title += '(年检查)';
+                    break;
+                case 2 :
+                    title += '(季检查)';
+                    break;
+                case 3 :
+                    title += '(月检查)';
+                    break;
+                case 4 :
+                    title += '(周检查)';
+                    break;
+                case 5 :
+                    title += '(日检查)';
+                    break;
+                case 0 :
+                    title += '(夜间检查)';
+                    break;
+            }
+            fnHeaderWin(title, 'report-content-check-chart', '/home/report/report-content-check-chart.html', {
+                taskIds: api.pageParam.taskIds,
+                itemName: itemName,
+                type: api.pageParam.type
+            });
+
+        }
+    }
+</script>
+</html>

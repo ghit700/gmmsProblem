@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        html, body {
+            min-height: 100%;
+            background-color: #efeff4;
+        }
+
+        .my-media-img {
+            max-height: 48px;
+            height: 48px;
+            width: 48px;
+            margin-top: 5px;
+        }
+
+        .mui-media-body .title01 {
+            color: #111111;
+            white-space: normal;
+        }
+
+        .mui-card-footer .title02 {
+            font-size: 0.7em;
+            color: #999;
+            margin-bottom: 0;
+        }
+
+        .mui-card-footer p img {
+            width: 12px;
+            height: 12px;
+            margin-right: 2px;
+            vertical-align: text-top;
+        }
+
+        .mui-media-body .sharetime {
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        .mui-table-view-cell > a:not(.mui-btn) {
+            display: -webkit-flex;
+            display: flex;
+            -webkit-align-items: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            margin: -11px -15px;
+            padding: inherit;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+<div id="businessview_list" class="mui-content">
+    <!--<div class="mui-card">
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell mui-media">
+                <a href="javascript:;">
+                    <img class="mui-media-object mui-pull-left" src="../../../image/message/lmbh_icon.png"/>
+                    <div class="mui-media-body" style="width: 100%;">
+                        <p class='mui-pull-left'><span style="color: #507DAF;">姚锐</span> 发送了一笔:</p>
+                        <p class='mui-pull-right sharetime'>6/9</p><br/>
+                        <p class="title01">账户开通权限变更热风分分发</p>
+                    </div>
+                </a>
+            </li>
+        </ul>
+        <div class="mui-card-footer">
+            <p class='mui-pull-left title02'><img src='../../../image/lkxc_save_sel.png'/>开发单位系统评估及处理意见</p>
+            <p class="mui-pull-right title02"><img src='../../../image/newmine.png'/>姚锐</p>
+        </div>
+    </div>-->
+</div>
+<div id="load_more" style="margin:10px;text-align: center;height:24px;color:#ccc;"></div>
+</body>
+<script id="template" type="text/template">
+    {{~ it:data }}
+    <div class="mui-card" onclick="openDynamic('{{=data.bsnum}}')">
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell mui-media">
+                <a href="javascript:;">
+                    <img class="mui-media-object mui-pull-left" src="{{=data.itemIcon}}"/>
+                    <div class="mui-media-body" style="width: 100%;">
+                        <p class='mui-pull-left'><span style="color: #507DAF;">{{=data.creator}}</span> 发送了一笔:</p>
+                        <p class='mui-pull-right sharetime'>{{=data.createTime}}</p><br/>
+                        <p class="mui-ellipsis title01">{{=data.name}}</p>
+                    </div>
+                </a>
+            </li>
+        </ul>
+        <div class="mui-card-footer">
+            <p class='mui-pull-left title02'>
+                <img src='../../../image/status/{{=data.status}}.png'/>
+                {{?data.status=='0'}}在办
+                {{??data.status=='1'}}结束
+                {{??data.status=='2'}}作废
+                {{??data.status=='3'}}暂存
+                {{??data.status=='4'}}退回
+                {{??data.status=='5'}}归档
+                {{??data.status=='6'}}挂起
+                {{?}}
+            </p>
+            <p class="mui-pull-right title02"><img src='../../../image/newmine.png'/>{{=data.creator}}</p>
+        </div>
+    </div>
+    {{~}}
+</script>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/doT.min.js"></script>
+<script type="text/javascript" src="../../../script/CDateTime.js"></script>
+<script type="text/javascript">
+    var businessView_list, dot;
+    var pageNo = 1;
+    var pageSize = 10;
+    var totalRows = 0;
+    var isPush = true;
+    var curItemId = 0;
+
+    var UIActionSelector = null;
+    var pickerData = [];
+    var isOpened = false;
+    apiready = function () {
+        mui.init();
+
+        fnInit();
+        fnLoadBusinessView(false, 'down');
+        fnInitPull();
+        fnInitPushRefresh();
+
+        pickerData.push({value: 0, name: '全部类型'});
+        fnInitItemList();
+        UIActionSelector = api.require('UIActionSelector');
+    };
+
+    function fnShowUIAction() {
+        UIActionSelector.open({
+            datas: pickerData,
+            layout: {
+                col: 1,
+                height: 36,
+                size: 16,
+                sizeActive: 16,
+                rowSpacing: 2,
+                maskBg: 'rgba(0,0,0,.3)',
+                bg: '#fff',
+                color: '#888',
+                colorSelected: '#222'
+            },
+            animation: true,
+            cancel: {
+                text: '取消',
+                size: 12,
+                w: 46,
+                h: 29,
+                bg: '#fff',
+                bgActive: '#ccc',
+                color: '#888',
+                colorActive: '#fff'
+            },
+            ok: {
+                text: '确定',
+                size: 12,
+                w: 46,
+                h: 29,
+                bg: '#007aff',
+                bgActive: '#0453a9',
+                color: '#fff',
+                colorActive: '#fff'
+            },
+            title: {
+                text: '请选择',
+                size: 12,
+                h: 44,
+                bg: '#eee',
+                color: '#888'
+            },
+            fixedOn: api.frameName
+        }, function (ret, err) {
+            if (ret) {
+                if (ret.eventType == 'ok') {
+                    var selInfo = ret.selectedInfo;
+                    fnPickerQuery(selInfo[0].value);
+                    api.execScript({
+                        name: api.winName,
+                        script: "setItemName('cur_itemName2',\'" + selInfo[0].name + "\');"
+                    });
+                }
+            }
+        });
+    }
+
+    function fnInitItemList() {
+        api.ajax({
+            url: $api.getStorage('gmms_url') + 'modules/mobile/business/business-deal!setPermissionItemLst.action',
+            method: 'post',
+            timeout: 10,
+            data: {
+                values: {userId: $api.getStorage('user').id, lesseeId: $api.getStorage('user').lesseeId}
+            }
+        }, function (ret, err) {
+            if (ret) {
+                $.each(ret, function (i, item) {
+                    pickerData.push({value: item.itemId, name: item.itemName});
+                });
+            }
+        });
+    }
+
+    function fnInit() {
+        businessView_list = $api.byId('businessview_list');
+        var template = $api.byId('template');
+        dot = doT.template(template.innerHTML);
+    }
+    function fnPickerQuery(itemId) {
+        curItemId = itemId;
+        fnLoadBusinessView(false, 'down');
+    }
+    // 刷新
+    function fnInitPull() {
+        api.setRefreshHeaderInfo({
+            bgColor: '#efeff4',
+            dropColor: '#9BA2AC'
+        }, function () {
+            fnLoadBusinessView(true, 'down');
+        });
+    }
+    ;
+
+    // 下拉加载更多
+    function fnInitPushRefresh() {
+        api.addEventListener({
+            name: 'scrolltobottom',
+            extra: {
+                threshold: 0
+            }
+        }, function (ret, err) {
+            if (!isPush)
+                return;
+            if ($('#businessview_list').find('.mui-card').length >= totalRows) {
+                isPush = false;
+                $('#load_more').html('没有数据了');
+            } else {
+                fnLoadBusinessView(false, 'up');
+            }
+        });
+    }
+    ;
+
+    /**
+     * 加载数据
+     */
+    function fnLoadBusinessView(isLoad, upordown) {
+        var ctype = api.connectionType;
+        if (ctype.toLowerCase() == 'unknown' || ctype.toLowerCase() == 'none') {
+            api.toast({
+                msg: '暂无网络',
+                duration: 2000,
+                location: 'bottom'
+            });
+            if (isLoad) {
+                api.refreshHeaderLoadDone(); //刷新结束
+            }
+        } else {
+            if (!isLoad) {
+                $('#load_more').html('<span class="mui-spinner" style="vertical-align: bottom;"></span> 加载更多...');
+            }
+            if (upordown == 'down') {
+                pageNo = 1;
+                isPush = true;
+                businessView_list.innerHTML = '';
+            }
+            var gmms_url = $api.getStorage('gmms_url');
+            var userId = $api.getStorage('user').id;
+            var lesseeId = $api.getStorage('user').lesseeId;
+            api.ajax({
+                url: gmms_url + 'modules/mobile/business/business-deal!queryBusinessPassForApp.action',
+                method: 'post',
+                timeout: 30,
+                data: {
+                    values: {userId: userId, lesseeId: lesseeId, itemid: curItemId, pageNo: pageNo, pageSize: pageSize}
+                }
+            }, function (ret, err) {
+                if (ret) {
+                    totalRows = ret.totalRows;
+                    $.each(ret.datas, function (idx, item) {
+                        if (item.itemIcon != '' && item.itemIcon != null) {
+                            item.itemIcon = gmms_url + '/js/jcarousel/images/flat/' + item.itemIcon;
+                        } else {
+                            item.itemIcon = '../../../image/message/quxiao.png';
+                        }
+                        item.createTime = tranTime(item.createTime);
+                    });
+                    if (upordown == 'down') {
+                        businessView_list.innerHTML = dot(ret.datas);
+                    } else {
+                        businessView_list.innerHTML += dot(ret.datas);
+                    }
+                    if (totalRows > $('.mui-card').length) {
+                        $('#load_more').html('上拉加载更多');
+                    } else {
+                        $('#load_more').html('没有数据了');
+                    }
+                } else {
+                    api.toast({
+                        msg: err.msg,
+                        duration: 2000,
+                        location: 'bottom'
+                    });
+                    isPush = false;
+                    $('#load_more').html('暂无数据');
+                }
+                if (isLoad) {
+                    api.refreshHeaderLoadDone(); //刷新结束
+                }
+                pageNo++;
+            });
+        }
+    }
+
+    function openDynamic(bsnum) {
+        api.openWin({
+            name: 'business_deal_todo',
+            url: '../first_frame/business_deal_todo.html',
+            pageParam: {
+                title: '事务查看',
+                bsnum: bsnum
+            }
+        });
+    }
+</script>
+</html>

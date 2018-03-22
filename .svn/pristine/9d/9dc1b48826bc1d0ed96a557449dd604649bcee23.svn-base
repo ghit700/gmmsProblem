@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/aui.css"/>
+    <style>
+        button {
+            border: 0;
+        }
+
+        .aui-card-list-footer:active {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+<div id="problem_list" class="aui-content aui-margin-t-10">
+    <input type="hidden" id="todoid"/>
+    <input type="hidden" id="openid"/>
+    <div class="aui-card-list" id="problem_info">
+        <div class="aui-card-list-header aui-border-b">
+            <div id="item_name"></div>
+            <div id="create_time" class="aui-list-item-right"></div>
+        </div>
+        <div class="aui-card-list-content-padded aui-border-b">
+            <p>
+                <i class="aui-iconfont aui-icon-edit aui-text-info"></i> 故障描述：<span id="problem_desc"></span>
+            </p>
+            <p>
+                <i class="aui-iconfont aui-icon-gear aui-text-info"></i> 所属设备：<span id="problem_place"></span>
+            </p>
+            <p>
+                <i class="aui-iconfont aui-icon-star aui-text-info"></i> 故障等级：<span id="problem_grade"></span>
+            </p>
+            <p>
+                <i class="aui-iconfont aui-icon-date aui-text-danger"></i> 报修至今：<span id="problem_duration_time"></span>
+            </p>
+        </div>
+        <div id="show_log_div" class="aui-card-list-footer" style="padding-right:0;" tapmode>
+            <div></div>
+            <div>
+                <li class="aui-list-item">
+                    <div class="aui-list-item-inner aui-list-item-arrow">
+                        <div class="aui-list-item-title"></div>
+                        <div class="aui-list-item-right">
+                            流程日志
+                        </div>
+                    </div>
+                </li>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="aui-content aui-margin-b-15 aui-border-b" style="background: #fff;">
+    <h5 class="" style="padding: 0.5rem 0 0 0.8rem;">处理记录</h5>
+    <div id="no_data_div" style="display: none;" class="aui-card-list-footer aui-text-center">暂无数据</div>
+    <div id="problem_disposal_list" class="aui-timeline aui-border-b" style="overflow: hidden;">
+        <!--异步数据-->
+        <!--<div class="aui-timeline-item-header">
+            2017-09-06 10:32~2017-09-06 11:32
+        </div>
+        <div class="aui-timeline-item">
+            <div class="aui-timeline-item-label aui-bg-warning text-light">
+                第二次
+            </div>
+            <div class="aui-timeline-item-inner">
+                <div class="aui-card-list">
+                    <div class="aui-card-list-content-padded">
+                        <div class="aui-label aui-label-info" style="float:right;">
+                            已确诊
+                        </div>
+                        <p>
+                            维修方式：更换
+                        </p>
+                        <p>
+                            处理过程：更换通信模块
+                        </p>
+                        <p>
+                            处理计划：继续处理
+                        </p>
+                        <p>
+                            处理人员：袁静
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+    </div>
+    <div id="add_disposal_div" style="display: none;" class="aui-card-list-footer aui-text-center" tapmode>
+        <div class="aui-text-info">
+            <img src="../../../image/add.png" style="width:2.8rem;display:-webkit-inline-box"/>
+            <br/>
+            点击添加维修记录
+        </div>
+    </div>
+</div>
+<div style="padding: 0 0.75rem;">
+    <button type="button" style="margin:0.8rem 0;" class="aui-btn aui-btn-info aui-btn-block" tapmode
+            onclick="fnSubmit(this)">
+        提交
+    </button>
+</div>
+</body>
+<script id="problem_disposal_list_Temp" type="text/template">
+    {{~it:data:index}}
+    <div class="aui-timeline-item-header">
+        {{=data.statrTime}}~{{=data.endTime}}
+    </div>
+    <div class="aui-timeline-item">
+        <div class="aui-timeline-item-label aui-bg-warning text-light">
+            第{{=index+1}}次
+        </div>
+        <div class="aui-timeline-item-inner" tapmode onclick="fnViewProblemDisposal({{=data.id}})">
+            <div class="aui-card-list">
+                <div class="aui-card-list-content-padded">
+                    {{?data.status==='1'}}
+                    <div class="aui-label aui-label-info" style="float:right;">未确诊</div>
+                    {{??data.status==='2'}}
+                    <div class="aui-label aui-label-info" style="float:right;">已确定</div>
+                    {{??}}
+                    <div class="aui-label aui-label-success" style="float:right;">已排除</div>
+                    {{?}}
+                    <p>
+                        维修方式：
+                        {{?data.disposalMode==='1'}}
+                        改造
+                        {{??data.disposalMode==='2'}}
+                        维修
+                        {{??data.disposalMode==='3'}}
+                        更换
+                        {{??data.disposalMode==='4'}}
+                        新增
+                        {{?}}
+                    </p>
+                    <p>
+                        处理过程：{{=data.process}}
+                    </p>
+                    <p>
+                        处理计划：{{=data.planType}}
+                    </p>
+                    <p>
+                        处理人员：{{=data.name}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{~}}
+</script>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/doT.min.js"></script>
+<script type="text/javascript" src="../../../script/CDateTime.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    var dotTxt_disposal = null;
+    var serverUrl = null;
+    var cur_user = null;
+    var cur_problem = null;
+    var toast = new auiToast();
+    apiready = function () {
+        serverUrl = $api.getStorage("gmms_url");
+        cur_user = $api.getStorage("user");
+        dotTxt_disposal = doT.template($('#problem_disposal_list_Temp').html());
+        $('#item_name').html(api.pageParam.zoneName);
+        window.setTimeout(function () {
+            fnFindProblemInfo();
+        }, 300);
+
+        $('#show_log_div').on('click', function () {
+            fnOpenBusinessLog(api.pageParam.bsnum);
+        });
+        $('#add_disposal_div').on('click', function () {
+            fnAddDisposal(api.pageParam.bsnum, $(this));
+        });
+        api.parseTapmode();
+    };
+    /**
+     * 故障信息查询
+     */
+    function fnFindProblemInfo() {
+        toast.loading({
+            title: "加载中...",
+            duration: 2000
+        });
+        var bsnum = api.pageParam.bsnum;
+        api.ajax({
+            url: serverUrl + '/modules/mobile/defect/fault-repair-rbi!dealProblemBusiness.action',
+            method: 'GET',
+            timeout: 10,
+            data: {
+                values: {
+                    userId: cur_user.id,
+                    bsnum: bsnum
+                }
+            }
+        }, function (ret, err) {
+            if (ret) {
+                cur_problem = ret.problem;
+                var disposalList = ret.problemDisposalLst;
+                $('#create_time').html(cur_problem.createTime);
+                $('#problem_desc').html(cur_problem.description);
+                $('#problem_place').html((cur_problem.place == '' || cur_problem.place == null) ? '待确认' : cur_problem.place);
+                $('#todoid').val(ret.todoid);
+                $('#openid').val(cur_problem.openid);
+                var grade = '';
+                if (cur_problem.exigenceGrade === '1') {
+                    grade = '一级(最高)';
+                }
+                if (cur_problem.exigenceGrade === '2') {
+                    grade = '二级';
+                }
+                if (cur_problem.exigenceGrade === '3') {
+                    grade = '三级';
+                }
+                $('#problem_grade').html(grade);
+                $('#problem_duration_time').html(tranTime(cur_problem.discoverTime));
+                $('#problem_disposal_list').html(dotTxt_disposal(disposalList));
+                if (disposalList.length <= 0) {
+                    $('#no_data_div').show();
+                } else {
+                    $('#no_data_div').hide();
+                }
+                if (ret.documentIds != '' && ret.documentIds != 'null') {
+                    $('#add_disposal_div').show();
+                    $('#add_disposal_div').attr('docId', ret.documentIds);
+                }
+                api.parseTapmode();
+            } else {
+                api.toast({msg: err.msg});
+            }
+            toast.hide();
+        });
+    }
+
+    function fnOpenBusinessLog(bsnum) {
+        api.openWin({
+            name: 'business_log',
+            url: '../businesstodo/business_log_win.html',
+            pageParam: {
+                bsnum: bsnum
+            },
+            animation: {
+                type: 'movein'
+            }
+        });
+    }
+
+    function fnAddDisposal(bsnum, _this) {
+        var problemId = cur_problem.id;
+        var documentIds = $(_this).attr('docId').split(',');
+        api.openWin({
+            name: 'defect_disposal_input',
+            url: './defect_disposal_input_win.html',
+            pageParam: {
+                bsnum: bsnum,
+                problemId: problemId,
+                documentId: documentIds[0]
+            },
+            animation: {
+                type: 'movein'
+            }
+        });
+    }
+
+    function fnViewProblemDisposal(pid) {
+        api.openWin({
+            name: 'defect_disposal_view',
+            url: './defect_disposal_view_win.html',
+            pageParam: {
+                disposalId: pid,
+            },
+            animation: {
+                type: 'movein'
+            }
+        });
+    }
+
+    function fnSubmit(_this) {
+        var bsnum = api.pageParam.bsnum;
+        fnBusinessTodo(bsnum);
+    }
+
+    function fnBusinessTodo(bsnum) {
+        api.openWin({
+            name: 'business_todo',
+            url: '../businesstodo/business_todo_win.html',
+            pageParam: {
+                winName: api.winName,
+                frameName: api.frameName,
+                title: '事务处理',
+                bsnum: bsnum,
+                todoid: $('#todoid').val()//可选
+            },
+            animation: {
+                type: 'movein'
+            }
+        });
+    }
+
+    /**
+     * 表单提交（提交事务前需调用此方法，方法名固定）
+     */
+    function doSubmit(functionName, nextNode, curNode) {
+//		console.log(JSON.stringify(nextNode)+','+JSON.stringify(curNode));
+//		提交事务前可根据环节进行判断操作
+        var openid = $('#openid').val();
+        if (openid != '' && nextNode.nodeName != '业主确认' && curNode.nodeName === '故障处理') {
+            api.alert({
+                title: '提示',
+                msg: '请提交业主确认环节'
+            });
+            return;
+        }
+
+        if (openid === '' && nextNode.nodeName === '业主确认') {
+            api.alert({
+                title: '提示',
+                msg: '请直接提交结束'
+            });
+            return;
+        }
+
+        var jsfn = functionName + '();';
+        api.execScript({
+            name: 'business_todo',
+            frameName: 'business_todo_frm',
+            script: jsfn
+        });
+        api.closeWin();
+    }
+</script>
+</html>

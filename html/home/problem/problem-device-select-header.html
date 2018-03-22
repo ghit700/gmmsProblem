@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .mui-header {
+            background-color: #1081DA
+        }
+
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header">
+    <a class="mui-action-back  mui-pull-left" style="color: white;margin-top: 10px;" onclick="closeWin()">取消</a>
+    <a class="mui-action-back mui-pull-right " style="color: white;margin-top: 10px;" onclick="finishWin()">完成</a>
+    <h1 class="mui-title" style="color: white"></h1>
+</header>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        if (api.pageParam.method == undefined) {
+            $('.mui-pull-right').hide();
+        }
+        initHeader();
+        $('h1').html(api.pageParam.name);
+        api.openFrame({
+            name: api.pageParam.frameName,
+            url: api.pageParam.url,
+            rect: {
+                x: 0,
+                y: $('#header').height(),
+                w: 'auto',
+                h: 'auto'
+            },
+            pageParam: api.pageParam,
+            bounces: false
+        });
+
+    };
+    function finishWin() {
+        if (api.pageParam.method != undefined) {
+            api.execScript({
+                frameName: api.pageParam.frameName,
+                script: api.pageParam.method
+            });
+        }
+    }
+</script>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/common.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+    <style>
+        html, body {
+            height: 'auto';
+            width: 100%;
+            background-color: #EEEEF0
+        }
+
+        .egret-img {
+            position: absolute;
+        }
+
+        .egret-right {
+            position: absolute;
+            right: 1px;
+            height: 25px;
+            width: 25px;
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        .egret-img img {
+            height: 25px;
+            width: 25px;
+            padding: 10px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+<div id="wrap">
+    <div id="header">
+        <div class='egret-img event-back' onclick="closeRegisterWin()">
+            <img src="../../../image/back_btn.png"/>
+        </div>
+        <img id="btnRight" class="egret-right" style="display:none" src="../../../image/header-finish.png"/>
+        <h1></h1>
+    </div>
+    <!--<div id="main"></div>-->
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/location.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript">
+
+    apiready = function () {
+        fnInitDB();
+        fnReadyHeader();
+        $('h1').html(api.pageParam.itemName);
+        switch (api.pageParam.type) {
+            case 1 :
+                $('h1').append('(年检查)');
+                break;
+            case 2 :
+                $('h1').append('(季检查)');
+                break;
+            case 3 :
+                $('h1').append('(月检查)');
+                break;
+            case 4 :
+                $('h1').append('(周检查)');
+                break;
+            case 5 :
+                $('h1').append('(日检查)');
+                break;
+            case 0 :
+                $('h1').append('(夜间检查)');
+                break;
+        }
+        closeScan();
+        var btnRight = document.getElementById('btnRight');
+        btnRight.onclick = submit;
+        fnFrame();
+        api.addEventListener({
+            name: 'viewdisappear'
+        }, function (ret, err) {
+            $api.rmStorage('imgArray');
+        });
+        api.addEventListener({
+            name: 'keyback',
+        }, function (ret) {
+            closeRegisterWin();
+        });
+
+    };
+    //显示桩号类型
+    function fnFrame() {
+        insertImgToTaskVindicate(api.pageParam.taskId, api.pageParam.devicePlaceId, api.pageParam.imgSrc);
+        api.openFrame({
+            name: 'check-task-detail-place',
+            url: './check-task-detail-place.html',
+            bounces: false,
+            pageParam: {
+                headerHeight: headerHeight,
+                componentId: api.pageParam.componentId,
+                taskId: api.pageParam.taskId,
+                devicePlaceId: api.pageParam.devicePlaceId,
+                mile: api.pageParam.mile,
+                name: api.pageParam.name,
+                type: api.pageParam.type,
+                componentName: api.pageParam.componentName,
+                itemName: api.pageParam.itemName,
+            },
+            rect: {
+                x: 0,
+                y: headerHeight,
+                w: 'auto',
+                h: 'auto'
+            },
+            vScrollBarEnabled: false,
+            hScrollBarEnabled: false,
+            slidBackEnabled: false
+        });
+    }
+
+    function closeScan() {
+        api.addEventListener({
+            name: 'viewappear'
+        }, function (ret, err) {
+            api.closeWin({
+                name: 'scan'
+            });
+        });
+    }
+
+    function showBtnRight() {
+        $('#btnRight').show();
+    }
+
+    function hideBtnRight() {
+        $('#btnRight').hide();
+    }
+    function submit() {
+        api.execScript({
+            frameName: 'check-task-detail-list',
+            script: 'uploadTaskItem();'
+        });
+
+    }
+
+    function uploadTaskItem() {
+        var msg = "";
+//        if (api.pageParam.type != undefined) {
+//            msg = "是否上传？";
+//        } else {
+        msg = "还未检查的项目全部正常,并上传全部异常事件？";
+//        }
+        api.confirm({
+            title: '提示',
+            msg: msg,
+            buttons: ['确定', '取消']
+        }, function (ret, err) {
+            if (ret.buttonIndex == 1) {
+                api.showProgress({
+                    style: 'default',
+                    animationType: 'fade',
+                    title: '保存中...',
+                    modal: true
+                });
+                getLastLocation(function (msg) {
+                    api.hideProgress();
+                    if (msg == undefined) {
+                        var user = $api.getStorage('user');
+                        var json = syncAllTunnelEventNormal({
+                            dpId: api.pageParam.devicePlaceId,
+                            taskId: api.pageParam.taskId,
+                            userId: user.id,
+                            componentId: api.pageParam.componentId,
+                            type: api.pageParam.type
+                        }, {
+                            tvPhotos: array
+                        });
+                        if (json.success) {
+//                    api.execScript({
+//                        frameName: 'check-task-detail-list',
+//                        script: 'loadTaskItems();'
+//                    });
+                            $('#btnRight').hide();
+                            api.toast({
+                                msg: '保存成功。',
+                                duration: 1000,
+                            });
+                            sendRegisterEvent();
+                            window.setTimeout(function () {
+                                api.closeWin();
+                            }, 500);
+                        }
+
+                    } else {
+                        api.hideProgress();
+                        api.toast({
+                            msg: msg,
+                            duration: 2000,
+                            location: 'bottom'
+                        });
+                    }
+                });
+
+            }
+        });
+    }
+
+    var array;
+    //保存图片数组
+    function saveArray(imgArray) {
+        array = imgArray;
+    }
+    function closeRegisterWin() {
+        api.closeWin();
+//                sendRegisterEvent();
+//        window.setTimeout(function () {
+//        api.closeWin();
+//        }, 500);
+    }
+    function sendRegisterEvent() {
+        var sql = "select t.status from " + TB_task_vindicate + " t where t.devicePlaceId=" + api.pageParam.devicePlaceId + " and t.taskId=" + api.pageParam.taskId;
+        var ret = fnSelectSync(sql);
+        if (ret.status && ret.data.length > 0 && ret.data[0].status != "") {
+            api.sendEvent({
+                name: 'jdChecking',
+                extra: {
+                    dpId: api.pageParam.devicePlaceId,
+                    imgArray: array,
+                    status: ret.data[0].status
+                }
+            });
+        }
+    }
+
+</script>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        html, body {
+            min-height: 100%;
+            background-color: #efeff4;
+        }
+
+        .mui-header {
+            background-color: #1081DA
+        }
+        .egret-reflash img {
+            height: 35px;
+            width: 20px;
+            padding-top: 10px;
+            top: 5px;
+            vertical-align: top;
+        }
+
+        .egret-select img {
+            height: 25px;
+            width: 25px;
+            margin-top: 10px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header">
+    <a class="mui-action-menu  egret-reflash" onclick="closeWin()"><img
+            src="../../../image/back_btn.png"/></a>
+    <h1 class="mui-title" style="color: white">报表</h1>
+</header>
+<div id="top" >
+    <div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted">
+        <a class="mui-control-item mui-active" href="#" frameIndex="0"> 检查情况 </a>
+        <a class="mui-control-item " href="#" frameIndex="1"> 故障情况 </a>
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    var checkPage;
+    var headerHeight;
+    apiready = function () {
+        headerHeight=initHeader();
+        $('#top').css("margin-top", headerHeight);
+        var height = $('.ui-select').height() + 5;
+        $('.mui-content').css("margin-top", height);
+        openFrame('report-check-situation');
+        $('.mui-control-item').on('tap', function () {
+            curFrameIndex = $(this).attr('frameIndex');
+            if (curFrameIndex == 0) {
+                openFrame('report-check-situation');
+            } else if (curFrameIndex == 1) {
+                openFrame('report-problem-repair');
+            }
+        });
+        api.addEventListener({
+            name: 'showFrame'
+        }, function (ret, err) {
+            api.bringFrameToFront({
+                from: checkPage
+            });
+        });
+    };
+    function openFrame(name) {
+        checkPage = name;
+        api.openFrame({
+            name: name,
+            url: './' + name + '.html',
+            reload: true,
+            rect: {
+                x: 0,
+                y: document.getElementById("top").offsetHeight + headerHeight,
+                w: 'auto',
+                h: 'auto'
+            }
+        });
+    }
+</script>
+</html>

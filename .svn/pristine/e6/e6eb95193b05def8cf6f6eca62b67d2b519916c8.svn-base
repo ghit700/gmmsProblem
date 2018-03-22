@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+            background-color: white;
+        }
+
+        #imglist_div {
+            width: 69%;
+            float: right;
+            height: 100px;
+            white-space: nowrap;
+        }
+
+        #imglist_div a {
+            width: 100px;
+            height: 100px;
+            padding: 0;
+            display: inline-block;
+            margin-left: 5px;
+            position: relative;
+        }
+
+        #imglist_div span {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+        }
+
+        .mui-input-row > span {
+            right: 0;
+            margin-top: 8px;
+            margin-right: 2px;
+        }
+    </style>
+</head>
+<body>
+<div id="name" style="background-color: white;margin-top: 5px;margin-bottom: 5px;padding-left: 20px"></div>
+<div id="container" style="background-color: #efeff4">
+</div>
+
+<div style="width: 100%;background-color: white;margin-bottom:10px;margin-top:10px">
+    <span id="addPhotoText" style=" margin: 20px">添加照片：</span>
+</div>
+<div id="photoContainer" style="background-color: white;margin-left: 7px;">
+    <div id="imglist_div" style="background-color: white"
+         class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
+        <div class="mui-scroll">
+        </div>
+    </div>
+    <div id="addPhotoBtn" style="width: 30%;height:100px;background-color: white">
+        <img onclick="picture()" width="90%" height="100" style="margin-left: 10px"
+             src="../../../image/add_photo.png"/>
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/cache.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript">
+    var htmlcontent = '';
+    //用于计算是否有照片
+    //类型
+    // 保存选择项
+    var annexIdeArray = [];
+    var annexIdeCodeArray = [];
+    var gmms_url;
+    apiready = function () {
+        fnInitDB();
+        $('#name').html(api.pageParam.name);
+        gmms_url = $api.getStorage("gmms_url");
+        http(api.pageParam.taskDetailId, api.pageParam.taskItemId, api.pageParam.devicePlaceId);
+    }
+    //遍历所选择图片 查看大图
+    function viewImg(img) {
+        var k = 0;
+        var elemets = $('.mui-scroll>a>img');
+        var array = new Array;
+        for (var i = 0; i < elemets.length; i++) {
+            if (img.src == elemets[i].src) {
+                k = i;
+            }
+            array[i] = elemets[i].src;
+        }
+        var imageBrowser = api.require('imageBrowser');
+        imageBrowser.openImages({
+            showList: false,
+            activeIndex: k,
+            tapClose: true,
+            imageUrls: array
+        });
+    }
+
+    //删除图片
+    function del(obj) {
+        api.confirm({
+            title: '提示',
+            msg: '是否删除',
+            buttons: ['确定', '取消']
+        }, function (ret, err) {
+            var index = ret.buttonIndex;
+            if (index == 1) {
+                $(obj).parent().parent().remove();
+            } else {
+            }
+        });
+    }
+
+    //关闭win
+    function finish() {
+        api.closeWin({});
+    }
+
+    var length = 0;
+    var resultType;
+    //单位
+    var unit = "";
+    //网络访问获取数据
+    function http(a, b, c) {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '努力加载中...',
+            modal: false
+        });
+        if(api.pageParam.type=='report'){
+            post("/modules/mobile/task/fire-task!queryCheckRegisterType.action", {
+                taskDetailId: api.pageParam.taskDetailId,
+                taskItem: api.pageParam.taskItemId,
+                devicePlaceId: api.pageParam.devicePlaceId,
+            }, function (ret) {
+                loadData(ret);
+            });
+        }else{
+            var json = queryCheckRegisterType({
+                taskDetailId: api.pageParam.taskDetailId,
+                taskItem: api.pageParam.taskItemId,
+                devicePlaceId: api.pageParam.devicePlaceId,
+                type: api.pageParam.type,
+            });
+            loadData(json);
+            api.hideProgress();
+        }
+
+
+
+
+
+    }
+    function loadData(json) {
+        if (json.success) {
+            //状态1为 未上传 其他为已上传
+            if (json.data[0].status == 1) {
+                var list = json.data[0].resultValue;
+                var formContent = '';
+                resultType = json.data[0].resultType;
+                //1.文本,2.选项,3.数值,4.多项
+                if (resultType == 3) {
+                    unit = json.data[0].unit;
+                    if (unit == undefined || unit == null || unit == "") {
+                        unit = "";
+                    }
+                    formContent += '<div style="margin:5px;background-color:#efeff4;padding-bottom: 5px;"> <div class="mui-input-row" style="border-bottom: 1px #dedede dotted;background-color: white"> <label style="width: 21%">数值</label> <input id="text" type="number" placeholder="输入数值" style="float:left;width: 65%;text-align: center"> <label id="unit" style="width: 10%">' + unit + '</label> </div> <div style="padding: 15px;background-color: white">其他： <div class="mui-input-row" style="margin: 10px 0px;"> <textarea id="remark" style="border: 1px #a5a5a5 dotted" rows="3"></textarea> </div> </div> </div>';
+
+                } else if (resultType == 2) {
+                    var unit = list.split(";")[1];
+                    if (unit == undefined) {
+                        unit = "";
+                    }
+                    result = list.split(";")[0].split(",");
+                    var isNoShowRemark = json.data[0].isNoShowRemark;
+                    length = result.length;
+                    var checkHtml = '';
+                    checkHtml += ' <div style="background-color: white"> <div class="mui-input-row mui-checkbox mui-left"> <label id="result0" style="width: 100%;padding-right: 0px">' + result[0] + '</label><input id="checkbox0" onclick="onSelectCheckBox(this,0)"name="checkbox" value="Item 1"type="checkbox"> </div> </div>';
+                    for (var j = 1; j < length; j++) {
+                        var remarkHtml = "";
+                        var remarkOtherName = "数量规格";
+                        if (isNoShowRemark != 'true') {
+                            if (json.data[0].remarkOtherName != undefined && json.data[0].remarkOtherName != 'null' && JTrim(json.data[0].remarkOtherName) != "") {
+                                remarkOtherName = json.data[0].remarkOtherName;
+                            }
+                            remarkHtml += '<div id="remark' + j + '" style="margin-left: 58px;display:none;"> <label style="width: 33%;padding-left: 0px;padding-right: 0px">' + remarkOtherName + '：</label> <input id="count' + j + '"type="text"placeholder="0"style="padding:1px 1px;display:inline;text-align:center;float:none;width: 40%"> <label id="unit" style="text-align: end;width: 10%;padding-left: 0px;padding-right: 3px">' + unit + '</label> </div>'
+                        }
+                        checkHtml += '<div style="background-color: white"> <div class="mui-input-row mui-checkbox mui-left"> <label id="result' + j + '"style="width: 100%;padding-right: 0px">' + result[j] + '</label><input id="checkbox' + j + '" onclick="onSelectCheckBox(this,' + j + ')"name="checkbox" value="Item 1"type="checkbox"> </div>' + remarkHtml + '</div>';
+                    }
+                    formContent += '<form id="ckForm" class="mui-input-group" style="width: 100%;background-color:#efeff4;padding-top: 10px;padding-bottom: 10px;"> ' + checkHtml + '</form>';
+                    formContent += '<div style="padding-bottom: 10px;background-color:#efeff4;"> <div style="padding: 15px;background-color: white;">其他：<div class="mui-input-row" style="margin: 10px 0px;"> <textarea id="remark" style="border: 1px #a5a5a5 dotted" rows="3"> </textarea> </div> </div> </div>';
+                } else if (resultType == 1) {
+                    formContent += ' <div style="background-color:#efeff4;padding-bottom: 1px;"> <div class="mui-input-row"style="background-color: white;margin:5px;border-radius: 5px;border: 1px white solid;"> <label style="width: 1%;padding: 0px 0px;"></label> <input id="text" type="text" style="width: 94%" placeholder="输入内容"> </div> </div>';
+                } else if (resultType == 4) {
+                    result = list.split(",");
+                    length = result.length;
+                    unit = json.data[0].unit;
+                    if (unit == undefined || unit == null || unit == "") {
+                        unit = "";
+                    } else {
+                        unit = unit.split(",")[0];
+                    }
+                    var checkHtml = '';
+                    for (var j = 0; j < length; j++) {
+                        checkHtml += ' <div style="background-color: white"><div class="mui-input-row mui-checkbox mui-left"> <label id="result' + j + '" style="width: 30%;padding-left: 15px">' + result[j] + '</label> <div style="display:inline;float: none"> <input id="count' + j + '" placeholder="输入数值" type="number"style="padding:1px 1px;display:inline;text-align:center;float:none;width: 40%"> <label id="unit' + j + '" style="width: 10%;padding-left: 0px;padding-right: 0px">' + unit + '</label> </div> </div> </div>';
+                    }
+                    formContent += ' <form id="ckForm" class="mui-input-group"style="width: 100%;background-color:#efeff4;padding-bottom: 10px;">' + checkHtml + ' </form>';
+                    formContent += ' <div style="padding-bottom: 10px;background-color:#efeff4;"> <div style="padding: 15px;background-color: white;">其他： <div class="mui-input-row" style="margin: 10px 0px;"> <textarea id="remark" style="border: 1px #a5a5a5 dotted" rows="3"> </textarea> </div> </div> </div>';
+                }
+                $('#container').html(formContent);
+            } else {
+                var formContent = '';
+                var annexIde = json.data[0].annexIde;
+                var annexIdeCode = json.data[0].annexIdeCode;
+                var resultValue = json.data[0].resultValue;
+                var resultValueAll = json.data[0].resultValueAll;
+                var photos = json.data[0].photos;
+                var remarkS = json.data[0].remark;
+                var isNormal = json.data[0].isNormal;
+                var type = api.pageParam.type;
+                resultType = json.data[0].resultType;
+                //隐藏提交按钮
+                var disHtml = "";
+                if (api.pageParam.status == 2) {
+                    if ((null != annexIde && null != annexIdeCode)) {
+                        $('#addPhotoText').hide();
+                        annexIdeArray = annexIde.split(",");
+                        annexIdeCodeArray = annexIdeCode.split(",");
+                        for (var i = 0; i < annexIdeArray.length; i++) {
+                            url = gmms_url + '/annexdownload?annexId=' + annexIdeArray[i] + '&code=' + annexIdeCodeArray[i] + '&download=true';
+                            htmlcontent = '<a " ><img id="downImg' + i + '" onclick="viewImg(this)"  class="uploadImg" src="../../../image/loadingImg.png"   style="margin-left:5px;width: 100%;height: 100px"/><span><img  onclick="del(this)"  alt="" src=""></span></a>';
+                            $('.mui-scroll').append(htmlcontent);
+                            fnCacheImage('downImg' + i, url);
+                        }
+                        $('#addPhotoText').html('照片：');
+
+                    } else if (photos != undefined && photos.length > 0) {
+                        $.each(photos, function (i, photo) {
+                            htmlcontent = '<a " ><img id="downImg' + i + '" onclick="viewImg(this)"  class="uploadImg" src="' + photo + '"   style="margin-left:5px;width: 100%;height: 100px"/><span><img  onclick="del(this)"  alt="" src=""></span></a>';
+                            $('.mui-scroll').append(htmlcontent);
+                        });
+                        $('#addPhotoText').html('照片：');
+                    } else {
+                        $('#addPhotoText').hide();
+                    }
+                    chanGe();
+                    disHtml = 'disabled="disabled"';
+                    var addPhotoBtn = $api.byId('addPhotoBtn');
+                    $api.css(addPhotoBtn, 'width: 0px;');
+                    var addPhoto = $api.byId('imglist_div');
+                    $api.css(addPhoto, 'width: 100%;');
+                } else {
+                    if ((null != annexIde && null != annexIdeCode)) {
+                        annexIdeArray = annexIde.split(",");
+                        annexIdeCodeArray = annexIdeCode.split(",");
+                        for (var i = 0; i < annexIdeArray.length; i++) {
+                            url = gmms_url + '/annexdownload?annexId=' + annexIdeArray[i] + '&code=' + annexIdeCodeArray[i] + '&download=true';
+                            htmlcontent = '<a " ><img id="downImg' + i + '" onclick="viewImg(this)"  class="uploadImg" src="../../../image/loadingImg.png"   style="margin-left:5px;width: 100%;height: 100px"/><span><img   onclick="del(this)" width="25" height="25"   alt="" src="../../../image/remove.png"></span></a>';
+                            $('.mui-scroll').append(htmlcontent);
+                            fnCacheImage('downImg' + i, url);
+                        }
+                        $('#addPhotoText').html('添加照片：');
+                    } else if (photos != undefined && photos.length > 0) {
+                        $.each(photos, function (i, photo) {
+                            htmlcontent = '<a " ><img id="downImg' + i + '" onclick="viewImg(this)"  class="uploadImg" src="' + photo + '"   style="margin-left:5px;width: 100%;height: 100px"/><span><img  onclick="del(this)"  alt="" src=""></span></a>';
+                            $('.mui-scroll').append(htmlcontent);
+                        });
+                        $('#addPhotoText').html('照片：');
+                    }
+                }
+                var other = "";
+                if (remarkS != undefined && remarkS.indexOf("!") >= 0) {
+                    other = remarkS.split("!")[1];
+                }
+                //1.文本,2.选项,3.数值,4.时间
+                if (resultType == 1) {
+                    formContent += '<div style="background-color:#efeff4;padding-bottom: 1px;"> <div class="mui-input-row"style="background-color: white;margin:5px;border-radius: 5px;border: 1px white solid;"> <label style="width: 1%;padding: 0px 0px;"></label> <input id="text" type="text" style="width: 94%" value="' + resultValue + '" ' + disHtml + ' placeholder="输入内容"> </div> </div>';
+                } else if (resultType == 2) {
+                    var result1 = resultValueAll.split(";")[0].split(",");
+                    length = result1.length;
+                    var remarkCount = "";
+                    if (remarkS != undefined && remarkS.indexOf("!") > 0) {
+                        remarkCount = remarkS.split("!")[0];
+                    }
+                    if (resultValueAll.split(";")[1] != undefined) {
+                        unit = resultValueAll.split(";")[1];
+                    } else {
+                        unit = "";
+                    }
+                    var isNoShowRemark = json.data[0].isNoShowRemark;
+                    var checkHtml = "";
+                    for (var j = 0; j < result1.length; j++) {
+                        if (resultValue.indexOf(result1[j]) != -1) {
+                            var countHtml = "";
+                            var remarkValue = "";
+                            var resultArray = resultValue.split(";");
+                            for (var i = 0; i < resultArray.length; i++) {
+                                if (resultArray[i] == result1[j] && remarkCount != null && remarkCount != undefined) {
+                                    if (JTrim(remarkCount.split(";")[i]) != "") {
+                                        remarkValue = remarkCount.split(";")[i];
+                                    }
+                                }
+                            }
+                            var remarkOtherName = "数量规格";
+                            if (isNoShowRemark != 'true' && j != 0) {
+                                if (json.data[0].remarkOtherName != undefined && json.data[0].remarkOtherName != 'null' && JTrim(json.data[0].remarkOtherName) != "") {
+                                    remarkOtherName = json.data[0].remarkOtherName;
+                                }
+                                countHtml += '<div id="remark' + j + '" style="margin-left: 58px;"> <label style="width: 33%;padding-left: 0px;padding-right: 0px">' + remarkOtherName + '：</label> <input value="' + remarkValue + '" id="count' + j + '"type="text"placeholder="0"style="padding:1px 1px;display:inline;text-align:center;float:none;width: 40%" ' + disHtml + '> <label id="unit" style="text-align: end;width: 10%;padding-left: 0px;padding-right: 3px">' + unit + '</label> </div>'
+                            }
+                            checkHtml += '<div style="background-color: white"> <div class="mui-input-row mui-checkbox mui-left"> <label id="result' + j + '"style="width: 100%;padding-right: 0px">' + result1[j] + '</label><input id="checkbox' + j + '" onclick="onSelectCheckBox(this,' + j + ')"name="checkbox" value="Item 1"type="checkbox" ' + disHtml + ' checked> </div>' + countHtml + '</div>';
+
+                        } else if (j != 0) {
+                            var remarkHtml = "";
+                            var remarkOtherName = "数量规格";
+                            if (isNoShowRemark != 'true') {
+                                if (json.data[0].remarkOtherName != undefined && json.data[0].remarkOtherName != 'null' && JTrim(json.data[0].remarkOtherName) != "") {
+                                    remarkOtherName = json.data[0].remarkOtherName;
+                                }
+                                remarkHtml += '<div id="remark' + j + '" style="margin-left: 58px;display:none;"> <label style="width: 33%;padding-left: 0px;padding-right: 0px">' + remarkOtherName + '：</label> <input id="count' + j + '"type="text"placeholder="0"style="padding:1px 1px;display:inline;text-align:center;float:none;width: 40%"> <label id="unit" style="text-align: end;width: 10%;padding-left: 0px;padding-right: 3px">' + unit + '</label> </div>'
+                            }
+                            checkHtml += '<div style="background-color: white"> <div class="mui-input-row mui-checkbox mui-left"> <label id="result' + j + '"style="width: 100%;padding-right: 0px">' + result1[j] + '</label><input id="checkbox' + j + '" onclick="onSelectCheckBox(this,' + j + ')"name="checkbox" value="Item 1"type="checkbox" ' + disHtml + '> </div>' + remarkHtml + '</div>';
+                        } else if (j == 0) {
+                            checkHtml += ' <div style="background-color: white"> <div class="mui-input-row mui-checkbox mui-left"> <label id="result0" style="width: 100%;padding-right: 0px">' + result1[j] + '</label><input id="checkbox0" onclick="onSelectCheckBox(this,0)"name="checkbox" value="Item 1"type="checkbox" ' + disHtml + '> </div> </div>';
+                        }
+                    }
+                    formContent += '<form id="ckForm" class="mui-input-group" style="width: 100%;background-color:#efeff4;padding-top: 10px;padding-bottom: 10px;"> ' + checkHtml + '</form>';
+                    formContent += '<div style="padding-bottom: 10px;background-color:#efeff4;"> <div style="padding: 15px;background-color: white;">其他：<div class="mui-input-row" style="margin: 10px 0px;"> <textarea id="remark" ' + disHtml + ' style="border: 1px #a5a5a5 dotted" rows="3">' + other + ' </textarea> </div> </div> </div>';
+
+                } else if (resultType == 3) {
+                    unit = json.data[0].unit;
+                    var value = json.data[0].resultValue;
+                    if (unit == undefined || unit == null || unit == "") {
+                        unit = "";
+                    } else {
+                        value = value.replace(unit, "");
+                    }
+                    formContent += '<div style="margin:5px;background-color:#efeff4;padding-bottom: 5px;"> <div class="mui-input-row" style="border-bottom: 1px #dedede dotted;background-color: white"> <label style="width: 21%">数值</label> <input id="text" type="number"  value="' + value + '" ' + disHtml + ' placeholder="输入数值" style="float:left;width: 65%;text-align: center"> <label id="unit" style="width: 10%">' + unit + '</label> </div> <div style="padding: 15px;background-color: white">其他： <div class="mui-input-row" style="margin: 10px 0px;"> <textarea id="remark" style="border: 1px #a5a5a5 dotted"   ' + disHtml + ' rows="3">' + other + '</textarea> </div> </div> </div>';
+                } else if (resultType == 4) {
+
+                    result = resultValueAll.split(",");
+                    length = result.length;
+                    unit = json.data[0].unit;
+                    if (unit == undefined || unit == null || unit == "") {
+                        unit = "";
+                    } else {
+                        unit = unit.split(",")[0];
+                    }
+                    var checkHtml = '';
+                    var resultValueArray = resultValue.split(";");
+                    for (var j = 0; j < length; j++) {
+                        checkHtml += '<div style="background-color: white"><div class="mui-input-row mui-checkbox mui-left"> <label id="result' + j + '" style="width: 30%;padding-left: 15px">' + result[j] + '</label> <div style="display:inline;float: none"> <input id="count' + j + '"  value="' + resultValueArray[j] + '" ' + disHtml + ' placeholder="输入数值" type="number"style="padding:1px 1px;display:inline;text-align:center;float:none;width: 40%"> <label id="unit' + j + '" style="width: 10%;padding-left: 0px;padding-right: 0px">' + unit + '</label> </div> </div> </div>';
+                    }
+                    formContent += ' <form id="ckForm" class="mui-input-group"style="width: 100%;background-color:#efeff4;padding-bottom: 10px;">' + checkHtml + ' </form>';
+                    formContent += ' <div style="padding-bottom: 10px;background-color:#efeff4;"> <div style="padding: 15px;background-color: white;">其他： <div class="mui-input-row" style="margin: 10px 0px;"> <textarea id="remark" style="border: 1px #a5a5a5 dotted" rows="3"  ' + disHtml + ' >' + other + '</textarea> </div> </div> </div>';
+                }
+                $('#container').html(formContent);
+
+            }
+            $('#photoContainer').css('height', api.frameName - $('container').height());
+        }
+    }
+
+    function JTrim(s) {
+        return s.replace(/(^\s*)|(\s*$)/g, "");
+    }
+    //验证是否为数字
+    function validateNumber(text) {
+        var reg = /^[0-9]+.?[0-9]*$/;
+        return reg.test(text);
+    }
+    //上传事件
+    function uploadEvent() {
+        if ($api.getStorage("on") == 0) {
+            api.toast({
+                msg: '当前没有网络。',
+                duration: 2000,
+                location: 'bottom'
+            });
+        } else {
+            //1.判断图片是否填写
+            var filevo = {};
+            filevo.image = [];
+            $('.mui-scroll>a>img').each(function (i) {
+                filevo.image[i] = this.src;
+            });
+            //2.判断填值类型( //1.文本,2.选项,3.数值,4.选项)
+            var isNormal = true;
+            var remark = "";
+            var remarkText = "";
+            var resultT = "";
+            if (resultType == 1) {
+                var text = $('#text').val();
+                if (JTrim(text) != "") {
+                    resultT = text;
+                } else {
+                    resultT = "正常";
+                }
+                remarkText = resultT;
+            } else if (resultType == 2) {
+                var checkboxArray = new Array;
+                var count = 0;
+
+                for (var i = 0; i < length; i++) {
+                    if ($('#checkbox' + i).prop('checked')) {
+                        if (i == 0) {
+                            isNormal = true;
+                            checkboxArray[count++] = i;
+                            break;
+                        } else {
+                            isNormal = false;
+                        }
+                        checkboxArray[count++] = i;
+                    }
+                }
+                for (var i = 0; i < count; i++) {
+                    var index = checkboxArray[i];
+                    if (i != 0) {
+                        remark += ';';
+                        resultT += ";";
+                        remarkText += ";";
+                    }
+                    resultT += $('#result' + index).html();
+                    remarkText += $('#result' + index).html();
+                    if (document.getElementById("count" + index) != undefined && JTrim(document.getElementById("count" + index).value) != "" && document.getElementById("count" + index).value != undefined) {
+                        remark += document.getElementById("count" + index).value + unit;
+                        remarkText += document.getElementById("count" + index).value + unit;
+                    }
+                }
+
+            } else if (resultType == 3) {
+                var text = $('#text').val().trim();
+                if (text != "") {
+                    resultT = text + $('#unit').html();
+                }
+                remarkText = resultT;
+            } else if (resultType == 4) {
+                if (length > 1) {
+                    resultT += $('#count' + 0).val();
+                    remarkText += $('#result' + 0).html() + $('#count' + 0).val() + $('#unit' + 0).html();
+                    for (var i = 1; i < length; i++) {
+                        resultT += ";" + $('#count' + i).val();
+                        remarkText += ";" + $('#result' + i).html() + $('#count' + i).val() + $('#unit' + i).html();
+                    }
+                }
+            }
+            if ($('#remark').length > 0) {
+                var text = $('#remark').val().trim();
+                if (text != "") {
+                    remark += "!" + text;
+                    remarkText += ";" + text;
+                }
+            }
+            var msg = "";
+            if (isNormal || filevo.image.length > 0) {
+                msg = "确认提交？";
+            } else {
+                msg = "还没拍摄照片，确认不拍摄照片？";
+            }
+            var btnArray = ['取消', '确定'];
+            mui.confirm(msg, '', btnArray, function (e) {
+                    if (e.index == 1) {
+                        //3.上传数据
+                        var json = syncTunnelEvent({
+                            taskDetailId: api.pageParam.taskDetailId,
+                            devicePlaceId: api.pageParam.devicePlaceId,
+                            creator: $api.getStorage('user').id,
+                            taskItem: api.pageParam.taskItemId,
+                            remark: remark,
+                            resultType: resultType,
+                            resultValue: resultT,
+                            lesseeId: $api.getStorage('user').lesseeId,
+                            inspectionItemId: api.pageParam.inspectionItemId,
+                            componentId: api.pageParam.componentId,
+                            isNormal: isNormal,
+                            type: api.pageParam.type
+                        }, filevo);
+                        if (json.success) {
+                            var jsfun = 'flushUI(\'' + remarkText + '\',' + isNormal + ');';
+                            api.toast({
+                                msg: '保存成功。',
+                                duration: 2000,
+                                location: 'bottom'
+                            });
+                            api.execScript({
+                                name: 'check-task-detail-content',
+                                frameName: 'check-task-detail-list',
+                                script: jsfun
+                            });
+//                            var sql = "select t.id from " + TB_device_place + " t where t.id in (select d.parentId from " + TB_device_place + " d where d.id=" + api.pageParam.devicePlaceId + ")";
+//                            var ret = fnSelectSync(sql);
+//                            if (ret.status && ret.data.length > 0) {
+//                                api.sendEvent({
+//                                    name: 'jdChecking',
+//                                    extra: {
+//                                        dpId: ret.data[0].id,
+//                                        status: 1
+//                                    }
+//                                });
+//                            }
+
+//                            api.sendEvent({
+//                                name: 'jdChecking',
+//                                extra: {
+//                                    dpId: api.pageParam.devicePlaceId,
+//                                    status: 1
+//                                }
+//                            });
+                        }
+                    }
+                }
+            )
+            ;
+
+        }
+
+    }
+
+    //判断所填记录是否完整
+    function isComplete() {
+        if (resultType == 3) {
+            var text = $('#text').val();
+            if (!validateNumber(text)) {
+                api.toast({
+                    msg: '请填写数字。',
+                    duration: 2000,
+                    location: 'bottom'
+                });
+                return false;
+            }
+            if (JTrim(text) == "") {
+                api.toast({
+                    msg: '请填写内容。',
+                    duration: 2000,
+                    location: 'bottom'
+                });
+                return false;
+            }
+            return true;
+        } else if (resultType == 2) {
+            var isCheck = false;
+            for (var i = 0; i <= length; i++) {
+                if ($('#checkbox' + i).prop('checked')) {
+                    isCheck = true;
+                    break;
+                }
+            }
+            if (!isCheck) {
+                api.toast({
+                    msg: '请选择状态。'
+                });
+                return false;
+            }
+            return true;
+        } else if (resultType == 4) {
+            for (var i = 0; i < length; i++) {
+                if (!validateNumber($('#count' + i).val())) {
+                    api.toast({
+                        msg: '请填写数字。',
+                        duration: 2000,
+                        location: 'bottom'
+                    });
+                    return false;
+                }
+                if (JTrim($('#count' + i).val()) == "") {
+                    api.toast({
+                        msg: '请填写完整。',
+                        duration: 2000,
+                        location: 'bottom'
+                    });
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function chanGe() {
+        var jsfun = 'change()';
+        api.execScript({
+            name: 'check-tack-detail-register-top',
+            script: jsfun
+        });
+    }
+
+    function showDialog() {
+        $('input').blur();
+        if (isComplete()) {
+            uploadEvent();
+        }
+    }
+
+    //图片缓存
+    function fnCacheImage(Id, imgUrl) {
+        cacheImg(imgUrl, function (imgPath) {
+            $('#' + Id).attr('src', imgPath);
+        });
+    }
+
+    //点击选项
+    function onSelectCheckBox(checkbox, index) {
+        if (index == 0) {
+            for (var i = 1; i < length; i++) {
+                $('#count' + i).val("");
+                $('#remark' + i).hide();
+                $('#checkbox' + i).prop('checked', false);
+            }
+        } else {
+            $('#count' + 0).val("");
+            $('#remark' + 0).hide();
+            $('#checkbox' + 0).prop('checked', false);
+        }
+        if (checkbox.checked) {
+            $('#remark' + index).css('display', 'inline');
+        } else {
+            $('#count' + index).val("");
+            $('#remark' + index).hide();
+        }
+        if (length == index) {
+            if (checkbox.checked) {
+                $('#other').css('display', 'inline');
+            } else {
+                $('#other').val("");
+                $('#other').hide();
+            }
+        }
+    }
+
+    //读取图片
+    function picture() {
+        api.actionSheet({
+            cancelTitle: '取消',
+            buttons: ['拍照', '相册']
+        }, function (ret, err) {
+            var index = ret.buttonIndex;
+            if (index == 1) {
+                api.getPicture({
+                    sourceType: 'camera',
+                    encodingType: 'jpg',
+                    mediaValue: 'pic',
+                    destinationType: 'url',
+                    //					    allowEdit: true,
+                    quality: 90,
+                    targetWidth: 1024,
+                    targetHeight: 1366,
+                    //					    saveToPhotoAlbum: false
+                }, function (ret, err) {
+                    if (ret != undefined && ret.data != null && ret.data != "") {
+                        htmlcontent = '<a "><img  onclick="viewImg(this)" class="uploadImg" src="' + ret.data + '"  style="margin-left:5px;width: 100%;height: 100px"/><span><img  onclick="del(this)" width="25" height="25"   alt="" src="../../../image/remove.png"></span></a>';
+                        $('.mui-scroll').append(htmlcontent);
+                        //用于计算 是否有添加照片
+                    }
+                });
+            } else if (index == 2) {
+                api.getPicture({
+                    sourceType: 'library',
+                    encodingType: 'jpg',
+                    mediaValue: 'pic',
+                    destinationType: 'url',
+                    quality: 90,
+                    targetWidth: 1024,
+                    targetHeight: 1366,
+                    //					    saveToPhotoAlbum: false
+                }, function (ret, err) {
+                    if (ret != undefined && ret.data != null && ret.data != "") {
+                        htmlcontent = '<a  ><img  onclick="viewImg(this)" class="uploadImg" src="' + ret.data + '"  style="margin-left:5px;width: 100%;height: 100px"/><span><img   onclick="del(this)" width="25" height="25"   alt="" src="../../../image/remove.png"></span></a>';
+                        $('.mui-scroll').append(htmlcontent);
+                        //用于计算 是否有添加照片
+                    }
+                });
+            }
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <!--<link rel="stylesheet" type="text/css" href="../../css/mui.min.css"/>-->
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css"/>
+    <link rel="stylesheet" type="text/css" href="../../css/action-table.css"/>
+    <style>
+        .aui-grid .iconfont {
+		    position: relative;
+		    z-index: 20;
+		    top: 0;
+		    height: 1.4rem;
+		    font-size: 1.4rem;
+		    line-height: 1.4rem;
+		}
+    </style>
+</head>
+<body>
+<section id="actionlist" class="aui-grid">
+    <div class="aui-row">
+        <div class="aui-col-xs-3" tapmode onclick="fnOpenAction('scan')">
+            <i class="iconfont icon-action-scan" style="color: #3699db;"></i>
+            <div class="aui-grid-label">扫一扫</div>
+        </div>
+        <div class="aui-col-xs-3">
+            <i class="iconfont icon-action-register" style="color: #e74d3e"></i>
+            <div class="aui-grid-label">故障登记</div>
+        </div>
+        <div class="aui-col-xs-3" tapmode onclick="fnOpenAction('task-work-list')">
+            <i class="iconfont icon-action-work-list" style="color: #96a6a7"></i>
+            <div class="aui-grid-label">任务工单</div>
+        </div>
+        <div class="aui-col-xs-3" tapmode onclick="fnOpenAction('report')">
+            <i class="iconfont icon-action-report" style="color: #f39d14"></i>
+            <div class="aui-grid-label">统计报表</div>
+        </div>
+        <div class="aui-col-xs-3">
+            <i class="iconfont icon-action-query" style="color: #29af61"></i>
+            <div class="aui-grid-label">综合查询</div>
+        </div>
+        <div class="aui-col-xs-3" tapmode onclick="fnOpenAction('business_new')">
+            <i class="iconfont icon-gongzuojingyan" style="color:#fb9e0d;"></i>
+            <div class="aui-grid-label">发起工作</div>
+        </div>
+        <div class="aui-col-xs-3">
+            <i class="iconfont icon-chart" style="color:#486bf1;"></i>
+            <div class="aui-grid-label">领导视图</div>
+        </div>
+        <div class="aui-col-xs-3">
+            <i class="iconfont icon-gengduo" style="color:#ccc;"></i>
+            <div class="aui-grid-label">更多</div>
+        </div>
+    </div>
+</section>
+<!--
+<section id="actionlist" class="aui-grid">
+    <div class="aui-row">
+        <div class="aui-col-xs-3" style="padding: 15px 0" onclick="fnOpenAction('scan')">
+            <span class="mui-icon  icon-action-scan" style="color: #3699db;"></span>
+            <div class="mui-media-body "  >扫一扫</div>
+        </div>
+        <div class="aui-col-xs-3 col-padding" style="padding: 15px 0" >
+            <span class="mui-icon  icon-action-register" style="color: #e74d3e"></span>
+            <div class="mui-media-body">故障登记</div>
+        </div>
+        <div class="aui-col-xs-3" style="padding: 15px 0" onclick="fnOpenAction('task-work-list')">
+            <span class="mui-icon  icon-action-work-list" style="color: #96a6a7"></span>
+            <div class="mui-media-body" >任务工单</div>
+        </div>
+        <div class="aui-col-xs-3" style="padding: 15px 0" onclick="fnOpenAction('report')">
+            <span class="mui-icon  icon-action-report" style="color: #f39d14"></span>
+            <div class="mui-media-body" >统计报表</div>
+        </div>
+        <div class="aui-col-xs-3" style="padding: 15px 0">
+            <span class="mui-icon  icon-action-query" style="color: #29af61"></span>
+            <div class="mui-media-body" >综合查询</div>
+        </div>
+        <div class="aui-col-xs-3" style="padding: 15px 0">
+            <span class="mui-icon  icon-action-picking" style="color: #f1c40f"></span>
+            <div class="mui-media-body" >领料申请</div>
+        </div>
+        <div class="aui-col-xs-3" style="padding: 15px 0">
+            <span class="mui-icon mui-icon-plusempty" style="color: #7f8c8d"></span>
+            <div class="mui-media-body" >添加</div>
+        </div>
+    </div>
+</section>-->
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../script/scan.js"></script>
+<script type="text/javascript" src="../../script/common.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+    	api.parseTapmode();
+    	
+        initView();
+
+    };
+    function initView() {
+        //设置高度
+        api.setFrameAttr({
+            name: 'home-action-table',
+            rect: {
+                x: 0,
+                y: api.pageParam.headerHeight,
+                w: 'auto',
+                h: $('#actionlist').height()
+            },
+        });
+        api.setFrameAttr({
+            name: 'home-businesstodo',
+            rect: {
+                x: 0,
+                y: api.pageParam.headerHeight + $('#actionlist').height() + 10,
+                w: 'auto',
+                h: api.pageParam.frameHeight - api.pageParam.headerHeight - $('#actionlist').height() - 10
+            },
+        });
+    }
+    //打开具体的操作页面
+    function fnOpenAction(type) {
+        var url;
+        switch (type) {
+            case 'scan':
+                fnScan("lyxf-info", "", "widget://html/home/deviceplace/device-place-body.html");
+                return;
+                break;
+            case 'problem-register':
+                fnHeaderWin("故障报修", type, '/home/problem/problem-register.html', {});
+                return;
+                break;
+            case 'task-work-list':
+                url = "./check/task-work-list.html";
+                break;
+            case 'report':
+                url = "./report/report.html";
+                break;
+            case 'business_new':
+            	url = "./businessnew/business_new.html";
+            	break;
+            default:
+                return;
+        }
+        api.openWin({
+            name: type,
+            url: url,
+            animation: {
+            	type:"movein"
+            }
+        });
+    }
+</script>
+</html>

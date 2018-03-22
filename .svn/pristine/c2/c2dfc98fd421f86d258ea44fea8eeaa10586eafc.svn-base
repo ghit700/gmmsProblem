@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport"
+		  content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<title>title</title>
+	<link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+	<style>
+		body {
+			background-color: transparent;
+		}
+
+		@-webkit-keyframes scan-line-animation {
+			from {
+				height: 0px;
+			}
+			to {
+				height: 259px;
+			}
+		}
+
+		@keyframes scan-line-animation {
+			from {
+				height: 0px;
+			}
+			to {
+				height: 259px;
+			}
+		}
+
+		.scan-view {
+			width: 100%;
+			height: 100%;
+			display: none;
+			background-color: transparent;
+			border-top: 80px rgba(0, 0, 0, 0.5) solid;
+			border-left: 50px rgba(0, 0, 0, 0.5) solid;
+		}
+
+		.scan-div {
+			position: relative;
+			border: 1px white solid;
+			width: 260px;
+			height: 260px;
+		}
+
+		.scan-line {
+			background-color: transparent;
+			width: 260px;
+			animation: scan-line-animation 4s linear infinite;
+			-webkit-animation: scan-line-animation 4s linear infinite;
+			border-bottom: 1px #1081DA solid;
+		}
+
+		.scan-text {
+			position: fixed;
+			margin-top: 10px;
+			left: 0;
+			text-align: center;
+			color: white;
+			width: 100%;
+		}
+
+		.scan-cornet-left-top {
+			position: absolute;
+			width: 20px;
+			height: 20px;
+			left: -1px;
+			top: -1px;
+			border-top: 5px #1081DA solid;
+			border-left: 5px #1081DA solid;
+		}
+
+		.scan-cornet-left-bottom {
+			position: absolute;
+			width: 20px;
+			height: 20px;
+			left: -1px;
+			bottom: -1px;
+			border-bottom: 5px #1081DA solid;
+			border-left: 5px #1081DA solid;
+		}
+
+		.scan-cornet-right-top {
+			position: absolute;
+			width: 20px;
+			height: 20px;
+			right: -1px;
+			top: -1px;
+			border-top: 5px #1081DA solid;
+			border-right: 5px #1081DA solid;
+		}
+
+		.scan-cornet-right-bottom {
+			position: absolute;
+			width: 20px;
+			height: 20px;
+			right: -1px;
+			bottom: -1px;
+			border-right: 5px #1081DA solid;
+			border-bottom: 5px #1081DA solid;
+		}
+
+		.scan-img-swich {
+			position: absolute;
+			width: 45px;
+			height: 45px;
+			right: 0;
+			bottom: 30px;
+		}
+		.scan-img-swich-text {
+			position: absolute;
+			bottom: 5px;
+			color: white
+		}
+
+		.scan-img-huai {
+			position: absolute;
+			width: 45px;
+			height: 45px;
+			left: 0;
+			bottom: 30px;
+		}
+		.scan-img-huai-text {
+			position: absolute;
+			bottom: 5px;
+			color: white
+		}
+	</style>
+</head>
+<body>
+<div class="scan-view">
+	<div class="scan-div">
+		<div class="scan-cornet-left-top"></div>
+		<div class="scan-cornet-left-bottom"></div>
+		<div class="scan-cornet-right-top"></div>
+		<div class="scan-cornet-right-bottom"></div>
+		<div class="scan-line"></div>
+	</div>
+	<h5 class="scan-text">将二维码/条码放入框内,即可自动扫描</h5>
+</div>
+<img class="scan-img-swich" src="../../../image/shoudiantong.png" onclick="openLight()">
+<!--<img class="scan-img-huai" src="../../../image/suihuai.png" onclick="registerScan()">-->
+<span class="scan-img-swich-text">打开手电</span>
+<!--<span class="scan-img-huai-text">二维码损坏</span>-->
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        var bottom = (api.frameHeight - 260 - api.pageParam.height);
+        var left = api.pageParam.left;
+        $('.scan-view').css('border-top', api.pageParam.height + 'px rgba(0, 0, 0,0.5) solid');
+        $('.scan-view').css('border-bottom', bottom + 'px rgba(0, 0, 0,0.5) solid');
+        $('.scan-view').css('border-left', left + 'px rgba(0, 0, 0,0.5) solid');
+        $('.scan-view').css('border-right', left + 'px rgba(0, 0, 0,0.5) solid');
+        $('.scan-view').show();
+        $('.scan-img-huai').css('left',left+10);
+        $('.scan-img-swich').css('right',left+10);
+        $('.scan-img-swich-text').css('right',left);
+        $('.scan-img-huai-text').css('left',left-10);
+    };
+    function openLight() {
+        //在名为winName的window中执行jsfun脚本
+        api.execScript({
+            name: 'scan',
+            script: "openLight();"
+        });
+    }
+//    function registerScan() {
+//        api.execScript({
+//            name: 'scan',
+//            script: "registerScan();"
+//        });
+//    }
+</script>
+</html>

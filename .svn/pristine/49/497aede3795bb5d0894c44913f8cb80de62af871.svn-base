@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>title</title>
+		<link rel="stylesheet" type="text/css" href="../../css/api.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/mui.min.css" />
+		<style>
+			html, body {
+				min-height: 100%;
+				background-color: #efeff4;
+			}
+			h5 {
+				margin: 5px 7px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="mui-content">
+			<br/>
+			<h5>服务器地址：</h5>
+			<form class="mui-input-group">
+				<div class="mui-input-row">
+					<input id="serverAddr" type="text"/>
+				</div>
+			</form>
+			<h5>arcgis接口服务地址：</h5>
+			<form class="mui-input-group">
+				<div class="mui-input-row">
+					<input id="arcgisAddr" type="text"/>
+				</div>
+			</form>
+			<br/>
+			<div style="padding-top:2em;text-align: center;margin:0 auto;">
+				<button id="save_btn" type="button" class="mui-btn mui-btn-primary" style="width: 95%;height:3em;">
+					保存
+				</button>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript" src="../../script/api.js"></script>
+	<script type="text/javascript" src="../../script/db.js"></script>
+	<script type="text/javascript" src="../../script/mui.min.js"></script>
+	<script type="text/javascript" src="../../script/zepto.min.js"></script>
+	<script type="text/javascript">
+		apiready = function() {
+			fnInitDB();
+			$('#serverAddr').val($api.getStorage("gmms_url"));
+			$('#arcgisAddr').val($api.getStorage("arcgis_url"));
+			$('#save_btn').on('tap', function() {
+				var serverAddr = $('#serverAddr').val();
+				var arcgisAddr = $('#arcgisAddr').val();
+				if (serverAddr == '') {
+					alert('地址不能为空');
+					return;
+				}
+				var listMap = '[{"name":"server_addr","val":"'+serverAddr+'"},{"name":"arcgis_addr","val":"'+arcgisAddr+'"}]';
+				fnUpdateSync(TB_service_addr, $api.strToJson(listMap), null);
+				api.alert({
+					title : '提示',
+					msg : '设置成功',
+				}, function(ret, err) {
+					api.closeWin();
+				});
+				$api.setStorage("gmms_url", serverAddr);
+				$api.setStorage("arcgis_url", arcgisAddr);
+			});
+		};
+	</script>
+</html>

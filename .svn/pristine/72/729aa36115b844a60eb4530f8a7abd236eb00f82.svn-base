@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .egret-reflash {
+            position: absolute;
+        }
+
+        .mui-header {
+            background-color: #1081DA
+        }
+
+        .egret-reflash img {
+            height: 35px;
+            width: 25px;
+            padding-top: 10px;
+            top: 5px;
+            vertical-align: top;
+        }
+
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header">
+    <a class="mui-action-menu mui-pull-right egret-reflash" onclick="closeWin()"><img
+            src="../../../image/back_btn.png"/></a>
+
+    <a class="mui-action-menu mui-pull-right   egret-reflash " style="right: 0;margin-right: 5px" onclick="fnScanWin()" ><img
+            src="../../../image/tmall_icon.png"/></a>
+    <h1 class="mui-title" style="color: white">路段</h1>
+</header>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/scan.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        initHeader();
+        switch (api.pageParam.type) {
+            case 1 :
+                $('h1').append('(年检查)');
+                break;
+            case 2 :
+                $('h1').append('(季检查)');
+                break;
+            case 3 :
+                $('h1').append('(月检查)');
+                break;
+            case 4 :
+                $('h1').append('(周检查)');
+                break;
+            case 5 :
+                $('h1').append('(日检查)');
+                break;
+            case 0 :
+                $('h1').append('(夜间检查)');
+                break;
+        }
+        api.openFrame({
+            name: 'check-zone',
+            url: './check-zone.html',
+            rect: {
+                x: 0,
+                y: $('#header').height(),
+                w: 'auto',
+                h: 'auto'
+            },
+            pageParam: {
+                "type": api.pageParam.type,
+            },
+            bounces: true
+        });
+
+    };
+    function fnScanWin() {
+        fnScan('lyxf-type-check', api.pageParam.type, "");
+    }
+</script>
+</html>

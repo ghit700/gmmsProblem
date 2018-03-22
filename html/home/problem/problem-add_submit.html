@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/aui.css"/>
+    <style>
+
+        .ow-frame {
+            position: fixed;
+            bottom: 0px;
+            width: 100%;
+            height: 300px;
+        }
+
+        .ow-hide {
+            display: none;
+        }
+
+        .ow-header {
+            background-color: #f1f1f1 !important;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .aui-btn {
+            border: none !important;
+        }
+
+        .ow-liCheck {
+            display: flex;
+            flex-direction: column;
+            height: 250px;
+            overflow-y: auto;
+            background-color: #f3f3f3;
+        }
+
+        .ow-border {
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .ow-border-bottom {
+            border-bottom: 1px solid #03a9f4 !important;
+            color: #03a9f4 !important;
+        }
+
+        .ow-margin {
+            margin-top: 30px;
+        }
+
+        .aui-list-header {
+            background-color: #fff !important;
+        }
+
+        .ow-sel {
+            text-align: center;
+            color: #fff;
+            background-color: #03a9f4;
+        }
+
+        .ow-submit {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+            color: #DDDDDD;
+            opacity: 1;
+        }
+
+        ::-moz-placeholder { /* Mozilla Firefox 19+ */
+            color: #DDDDDD;
+            opacity: 1;
+        }
+
+        input:-ms-input-placeholder {
+            color: #DDDDDD;
+            opacity: 1;
+        }
+
+        input::-webkit-input-placeholder {
+            color: #DDDDDD;
+            opacity: 1;
+        }
+
+        textarea:-ms-input-placeholder {
+            color: #DDDDDD;
+            opacity: 1;
+        }
+
+        textarea::-webkit-input-placeholder {
+            color: #DDDDDD;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+<section class="aui-content" id="addProblem">
+    <ul class="aui-list aui-list-in ow-margin">
+        <li class="aui-list-header">
+            <div class="aui-list-item-inner">
+                下一环节
+            </div>
+        </li>
+        <li class="aui-list-item">
+            <select v-model="nodeId">
+                <option disabled="disabled">请选择下一环节</option>
+                <option v-for="node in lstNodes" :value="node.id">{{node.name}}</option>
+            </select>
+        </li>
+    </ul>
+    <ul class="aui-list aui-list-in ow-margin">
+        <li class="aui-list-header">
+            <div class="aui-list-item-inner">
+                下一处理人
+            </div>
+        </li>
+        <li class="aui-list-item">
+            <!--<div class="aui-list-item-inner">-->
+            <!--<div class="aui-list-item-input ow-sel" ikey="" onclick="fnOpenList()" id="nodeActorName"></div>-->
+            <!--</div>-->
+            <select v-model="actorId">
+                <option>请选择下一处理人</option>
+                <option v-for="actor in lstActors" :value="actor.id">{{actor.name}}</option>
+            </select>
+        </li>
+    </ul>
+    <ul class="aui-list aui-list-in ow-margin">
+        <li class="aui-list-item">
+            <div class="aui-list-item-inner ow-display-updown">
+                <div class="aui-list-item-input">
+                    <textarea placeholder="请输入处理意见" v-model="idea"></textarea>
+                </div>
+            </div>
+        </li>
+    </ul>
+    <div class="ow-submit">
+        <button class="aui-btn aui-btn-info ow-button" style="width:80%;height: 40px;" onclick="fnSubmit()">保存</button>
+    </div>
+</section>
+
+</body>
+
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript">
+    var addProblemModel;
+    apiready = function () {
+        addProblemModel = new Vue({
+            el: "#addProblem",
+            created: function () {
+                post("/modules/mobile/business/business-deal!defBusiness.action", {
+                    userId: $api.getStorage('user').id,
+                    keyName: 'faultRepairs'
+                }, function (ret) {
+                    $.each(ret.data, function (i, node) {
+                        addProblemModel.lstNodes.push(node);
+                    });
+                });
+            },
+            data: {
+                idea: "",
+                lstNodes: [],
+                lstActors: [],
+                nodeId: "",
+                actorId: ""
+            },
+            watch: {
+                nodeId: function (newData, oldData) {
+                    if (newData != "" && newData != oldData) {
+                        $.each(addProblemModel.lstNodes, function (i, node) {
+                            if (node.id == addProblemModel.nodeId) {
+                                addProblemModel.lstActors = [];
+                                $.each(node.nextActor, function (i, actor) {
+                                    addProblemModel.lstActors.push(actor);
+                                });
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    };
+    function fnSubmit() {
+        upload("/modules/mobile/defect/problem-deal!saveProblemSubmit.action",{
+            problem: api.pageParam.problem,
+            idea:addProblemModel.idea,
+            nodeId:addProblemModel.nodeId,
+            actorId:addProblemModel.actorId
+        }, api.pageParam.files,function (ret) {
+
+        })
+    }
+</script>
+
+</html>

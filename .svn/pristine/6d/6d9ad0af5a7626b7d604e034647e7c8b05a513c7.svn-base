@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        html, body {
+            background-color: #dedede
+        }
+
+        #imglist_div {
+            width: 75%;
+            float: right;
+            height: 100px;
+            white-space: nowrap;
+        }
+
+        #imglist_div a {
+            width: 100px;
+            height: 100px;
+            padding: 0;
+            display: inline-block;
+            margin-left: 5px;
+            position: relative;
+        }
+
+        #imglist_div span {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+        }
+    </style>
+</head>
+<body>
+<div id='content' style="padding:8px 15px;background-color: white;height:55px">
+    <button style="display:none;margin-right: 10px;position: absolute;right:0" type="button"
+            class="mui-btn mui-btn-danger mui-pull-right " onclick="fnCheckEvent()">
+        检查事件
+    </button>
+    <div id='content1'>
+    </div>
+    <span id='content2'>
+    </span>
+</div>
+<div id="bottom"
+     style="width:100%; position:fixed;bottom:0;white-space:nowrap;margin-top: 10px;background-color: white;">
+    <div id="addPhotoText" style="margin-left: 10px;margin-top: 5px;">
+        添加照片:
+    </div>
+    <div id="imglist_div"
+         class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
+        <div class="mui-scroll">
+        </div>
+    </div>
+    <div id="addPhotoBtn" style="width: 25%;height:50px;float: right;background-color: white">
+        <img onclick="takePhoto()" width="90%" height="80" style="margin-left:10px;margin-top: 10px"
+             src="../../../image/add_photo.png"/>
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript" src="../../../script/cache.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript">
+    var isLoading = false;
+    var bottomHeight;
+    var topHeight;
+    apiready = function () {
+        fnInitDB();
+        mui('.mui-scroll-wrapper').scroll({
+            deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+        });
+        bottomHeight = $('#bottom').height();
+        topHeight = $('#content').height();
+
+        $('#content1').html(api.pageParam.name);
+        $('#content2').html(api.pageParam.componentName);
+        initData();
+        loadImg(true);
+
+    };
+    var imageBrowser;
+    function initData() {
+        imageBrowser = api.require('imageBrowser');
+    }
+
+    //加載檢查項目
+    function loadItem() {
+        if (isLoading) {
+            return;
+        }
+        isLoading = true;
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '数据加载中...',
+            modal: false
+        });
+        fnFrameNoItem();
+
+    }
+
+    //未配置检查项目
+    function fnFrameNoItem() {
+        api.openFrame({
+            name: 'check-task-detail-list',
+            url: './check-task-detail-list.html',
+            bounces: false,
+            pageParam: {
+                headerHeight: api.pageParam.headerHeight + 65,
+                componentId: api.pageParam.componentId,
+                taskId: api.pageParam.taskId,
+                devicePlaceId: api.pageParam.devicePlaceId,
+                inspectionItemId: -1,
+                mile: api.pageParam.mile,
+                name: api.pageParam.name,
+                type: api.pageParam.type,
+                itemName: api.pageParam.itemName,
+                status: status
+            },
+            rect: {
+                x: 0,
+                y: api.pageParam.headerHeight + topHeight + 2,
+                w: 'auto',
+                h: api.frameHeight - bottomHeight - topHeight - 4
+            },
+            bgColor: 'rgba(0,0,0,0)',
+            vScrollBarEnabled: true,
+            slidBackEnabled: false
+        });
+        if (array == undefined && status == 2) {
+            $('#bottom').hide();
+            var y = api.pageParam.headerHeight + topHeight + 3;
+            api.setFrameAttr({
+                name: 'check-task-detail-list',
+                rect: {
+                    x: 0,
+                    y: y,
+                    w: 'auto',
+                    h: 'auto'
+                },
+                bgColor: 'rgba(0,0,0,0)',
+                vScrollBarEnabled: true,
+                slidBackEnabled: false
+            });
+        }
+    }
+
+    function fnCheckEvent() {
+        api.openWin({
+            name: 'check-event-header',
+            url: './check-event-header.html',
+            pageParam: {
+                "taskId": api.pageParam.taskId,
+                "dpId": api.pageParam.devicePlaceId,
+            },
+            vScrollBarEnabled: false,
+        });
+    }
+
+    function showDangerBtn() {
+        $('.mui-btn').show();
+    }
+
+    var p = 0;
+    htmlcontent = "";
+    //拍照
+    function takePhoto() {
+        api.getPicture({
+            sourceType: 'camera',
+            encodingType: 'jpg',
+            mediaValue: 'pic',
+            destinationType: 'url',
+            //					    allowEdit: true,
+            quality: 90,
+            targetWidth: 1024,
+            targetHeight: 1366,
+            //					    saveToPhotoAlbum: false
+        }, function (ret, err) {
+            if (ret != undefined && ret.data != null && ret.data != "") {
+                htmlcontent = '<a id="IMG' + p + '"><img id="downImg' + p + '" onclick="viewImg(this)" class="uploadImg" src="' + ret.data + '"  style="margin-left:5px;width: 80px;height: 80px;margin-top: 10px"/><span><img onclick="del(this)" width="25" height="25"    alt="" src="../../../image/remove.png"></span></a>';
+                $('.mui-scroll').append(htmlcontent);
+                p = p + 1;
+                array = new Array;
+                $('.mui-scroll>a>img').each(function (i) {
+                    array[i] = this.src;
+                });
+                var imgArray = array;
+                if (api.pageParam.type == 'register') {
+                    var num = 0;
+                    $.each(array, function (i, data) {
+                        if (downloadImgCount <= i) {
+                            imgArray[num++] = data;
+                        }
+                    });
+                }
+                //用于计算 是否有添加照片
+                var str = $api.jsonToStr(imgArray);
+                var fun = 'saveArray(' + str + ');';
+                api.execScript({
+                    script: fun
+                });
+            }
+        });
+    }
+
+    var array;
+    function viewImg(img) {
+        $('.mui-scroll>a>img').each(function (i) {
+            if (this.src == img.src) {
+                imageBrowser.openImages({
+                    showList: false,
+                    activeIndex: i,
+                    tapClose: true,
+                    imageUrls: array
+                });
+            }
+        });
+    }
+
+    function imgCache(id, url, index) {
+        cacheImg(url, function (imgPath) {
+            array[index] = imgPath;
+            $('#' + id).attr('src', imgPath);
+        });
+    }
+
+    //删除图片
+    function del(obj) {
+        api.confirm({
+            title: '提示',
+            msg: '是否删除',
+            buttons: ['确定', '取消']
+        }, function (ret, err) {
+            var index = ret.buttonIndex;
+            if (index == 1) {
+                $(obj).parent().parent().remove();
+                p -= 1;
+                array = new Array;
+                $('.mui-scroll>a>img').each(function (i) {
+                    array[i] = this.src;
+                });
+                var imgArray = array;
+                if (api.pageParam.type == 'register') {
+                    var num = 0;
+                    $.each(array, function (i, data) {
+                        if (downloadImgCount <= i) {
+                            imgArray[num++] = data;
+                        }
+                    });
+                }
+                var str = $api.jsonToStr(imgArray);
+                var fun = 'saveArray(' + str + ');';
+                api.execScript({
+                    script: fun
+                });
+            } else {
+            }
+        });
+    }
+
+    //下载的图片数量
+    var downloadImgCount = -1;
+    var status = 0;
+    function loadImg() {
+        if (api.pageParam.type == 'report') {
+            post("/modules/mobile/task/fire-task!queryTaskVindicateStatus.action", {
+                "taskId": api.pageParam.taskId,
+                "dpId": api.pageParam.devicePlaceId,
+            }, function (ret) {
+                loadData(ret);
+            });
+        } else {
+            var ret = queryTaskVindicateStatus({
+                "taskId": api.pageParam.taskId,
+                "dpId": api.pageParam.devicePlaceId,
+            });
+            loadData(ret);
+
+        }
+
+    }
+    function loadData(ret) {
+        if (ret.success) {
+            if (ret.isNormal == false) {
+                showDangerBtn();
+            }
+            if (ret.status == 2) {
+                status = 2;
+                api.execScript({
+                    name: api.winName,
+                    script: 'hideBtnRight();'
+                });
+                $('#addPhotoBtn').hide();
+                $('#imglist_div').css('width', '100%');
+                if (ret.photots != undefined && ret.photots.length > 0) {
+                    array = ret.photots;
+                    var html = "";
+                    downloadImgCount = array.length;
+                    $.each(array, function (i, img) {
+                        if (img.indexOf('annexdownload') >= 0) {
+                            var imgUrl = $api.getStorage('gmms_url') + img;
+                            array[i] = imgUrl;
+                            imgCache('downImg' + i, imgUrl, i);
+                            html += '<a id="IMG' + i + '"><img id="downImg' + i + '" onclick="viewImg(this)" class="uploadImg" src="../../../../image/loadingImg.png"  style="margin-left:5px;width: 80px;height: 80px;margin-top: 10px"/></a>';
+                        } else {
+                            html += '<a id="IMG' + i + '"><img id="downImg' + i + '" onclick="viewImg(this)" class="uploadImg" src="' + img + '"  style="margin-left:5px;width: 80px;height: 80px;margin-top: 10px"/></a>';
+                        }
+                    });
+                    $('#addPhotoText').html('照片：');
+                    $('.mui-scroll').html(html);
+                }
+
+            } else {
+                if (ret.photots != undefined && ret.photots.length > 0) {
+                    array = ret.photots;
+                    var html = "";
+                    downloadImgCount = array.length;
+                    $.each(array, function (i, img) {
+                        if (img.indexOf('annexdownload') >= 0) {
+                            var imgUrl = $api.getStorage('gmms_url') + img;
+                            array[i] = imgUrl;
+                            imgCache('downImg' + i, imgUrl, i);
+                            html += '<a id="IMG' + i + '"><img id="downImg' + i + '" onclick="viewImg(this)" class="uploadImg" src="../../../../image/loadingImg.png"  style="margin-left:5px;width: 80px;height: 80px;margin-top: 10px"/></a>';
+                        } else {
+                            html += '<a id="IMG' + i + '"><img id="downImg' + i + '" onclick="viewImg(this)" class="uploadImg" src="' + img + '"  style="margin-left:5px;width: 80px;height: 80px;margin-top: 10px"/></a>';
+                        }
+                    });
+                    $('.mui-scroll').html(html);
+                    var str = $api.jsonToStr(array);
+                    var fun = 'saveArray(' + str + ');';
+                    api.execScript({
+                        script: fun
+                    });
+                }
+                api.execScript({
+                    name: api.winName,
+                    script: 'showBtnRight();'
+                });
+            }
+            loadItem();
+        }
+    }
+
+</script>
+</html>

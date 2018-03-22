@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no"/>
+	<link rel="stylesheet" type="text/css" href="../../../../css/aui.css"/>
+</head>
+<body>
+	<div class="aui-content aui-margin-b-15">
+		<ul id="useunit_list" class="aui-list aui-list-in">
+            <!--<li class="aui-list-item aui-list-item-middle">
+                <div class="aui-list-item-inner aui-list-item-arrow">
+                    Item1
+                </div>
+            </li>-->
+        </ul>
+	</div>
+	<div id="load_more" style="height:24px;width:100%;">
+        <div style="margin: 10px 0px;text-align: center;width:100%;color: #6b6a6a;">加载中...</div>
+    </div>
+</body>
+<script id="useunit_list_Temp" type="text/template">
+{{~it:data}}
+<li class="aui-list-item aui-list-item-middle" tapmode onclick="fnQueryUsers({{=data.id}})">
+    <div class="aui-list-item-inner aui-list-item-arrow">
+        {{=data.name}}
+    </div>
+</li>
+{{~}}
+</script>
+<script type="text/javascript" src="../../../../script/api.js"></script>
+<script type="text/javascript" src="../../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../../script/doT.min.js"></script>
+<script type="text/javascript">
+	var dotTxt = null;
+	var IsPush = true;
+    var serverUrl = null;
+    var cur_user = null; 
+	apiready = function(){
+		api.parseTapmode();
+		serverUrl = $api.getStorage("gmms_url");
+        cur_user = $api.getStorage("user");
+        dotTxt = doT.template($('#useunit_list_Temp').html());
+		fnInitPullDown(); //下拉刷新
+		window.setTimeout(function(){
+			fnQueryUseunit(false);
+		},300);
+	};
+	
+	function fnInitPullDown() {
+        api.setRefreshHeaderInfo({
+            bgColor: '#f5f5f5',
+            dropColor: '#9BA2AC'
+        }, function(ret, err) {
+            if (IsPush) {
+                api.refreshHeaderLoadDone();
+                return;
+            }
+            fnQueryUseunit(true);
+        });
+    }
+    
+    function fnQueryUseunit(refresh){
+    	if(!refresh&&$api.getStorage('CUR_USEUNIT_LIST')!=null&&$api.getStorage('CUR_USEUNIT_LIST')!=undefined&&$api.getStorage('CUR_USEUNIT_LIST')!=""){
+
+            $('#useunit_list').html(dotTxt($api.getStorage('CUR_USEUNIT_LIST')));
+    		api.parseTapmode();
+    		$('#load_more').hide();
+    		return;
+    	}
+
+        IsPush = true;
+    	if(!refresh){
+    		$('#load_more').show();
+    	}
+    	api.ajax({
+            url: serverUrl + '/modules/mobile/defect/fault-repair-rbi!listUseunitUser.action',
+            method: 'GET',
+            timeout: 10,
+            data: {
+                values: {
+                    userId: cur_user.id,
+                }
+            }
+        }, function(ret, err) {
+            if (ret) {
+            	$api.setStorage("CUR_USEUNIT_LIST",ret);
+                $('#useunit_list').html(dotTxt(ret));
+                api.parseTapmode();
+            } else {
+                api.toast({
+                    msg: '请求错误或超时'
+                });
+                $('#load_more').html('暂无数据');
+            }
+            if (refresh) {
+                api.refreshHeaderLoadDone();
+            }else{
+            	$('#load_more').hide();
+            }
+            IsPush = false;
+        });
+    }
+    //根据单位ID获取用户
+    function fnQueryUsers(useunitId){
+    	var pageParam = api.pageParam;
+    	pageParam.useunitId = useunitId;
+    	api.openWin({
+	        name: 'sel_user',
+	        url: './sel_user_win.html',
+	        pageParam: pageParam,
+          	animation: {
+              	type: 'movein'
+          	}
+        });
+    }
+</script>
+</html>

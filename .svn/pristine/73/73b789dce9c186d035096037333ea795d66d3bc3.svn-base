@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/aui.css"/>
+    <style>
+    	button {border: 0;}
+    	.aui-list .aui-list-header{background-color: #f9f9f9;}
+    	.aui-card-list-content .aui-label{
+    		margin-bottom:0.2rem;
+    		margin-right:0.2rem;
+    	}
+    	.my-btn-add{
+    		border-radius: 0.2rem;padding:0 0.2rem;color:#bdbdbd;
+    		font-weight:600;
+    	}
+    	.my-add-img{
+    		float:left;
+		    border: 1px solid #bdbdbd;
+		    border-radius: 0.2rem;
+		    padding: 0.6rem 0.8rem;
+		    color: #bdbdbd;
+		    font-weight: 600;
+    	}
+    	.aui-list .aui-list-item-media{
+    		padding: 0;
+		    margin-bottom: 0.5rem;
+		    padding-right: 0.75rem;
+    	}
+    	.my-del-badge{
+    		position: absolute;
+		    right: 0.5rem;
+    		top:-0.2rem;
+		    text-align: center;
+		    min-width: 0.8rem;
+		    height: 0.8rem;
+		    line-height: 0.8rem;
+		    font-size: 0.6rem;
+		    color: #fff;
+		    background-color: #ff2600;
+		    border-radius: 0.4rem;
+    	}
+    	.aui-toast{z-index: 100;}
+    </style>
+</head>
+<body>
+ 	<form id="disposal_form">
+ 	<input type="hidden" name="problemDisposal.id"/>
+	<input type="hidden" name="problemDisposal.lesseeId"/>
+	<input type="hidden" name="problemDisposal.problem.id"/>
+	<input type="hidden" name="problemDisposal.problemType.id" value="2" />
+	<input type="hidden" name="itemid"/>
+ 	<input type="hidden" name="bsnum"/>
+	<input type="hidden" name="documentId">
+	<input type="hidden" id="problem_discoverTime"/>
+	<input type="hidden" id="problem_createTime"/>
+	<input type="hidden" name="problem.id"/>
+	<input type="hidden" name="problem.problemStatus.id" id="problem_problemStatus_id" value="2"/>
+	<input type="hidden" name="problem.planType.id" id="problem_planType_id" value="1"/>
+	<input type="hidden" id="preEndTime" name="preEndTime"/>
+	<input type="hidden" id="firstStartTime" name="firstStartTime"/>
+ 	<div class="aui-content aui-margin-b-15">
+	 	<ul class="aui-list aui-form-list aui-margin-t-15 aui-margin-b-15">
+            <li class="aui-list-header">处理时间</li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">开始时间</div>
+                    <div class="aui-list-item-input">
+                        <input readonly="readonly" id="problemDisposal_startTime" name="problemDisposal.startTime" type="text" placeholder="处理开始时间" tapmode/>
+                    </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">结束时间</div>
+                    <div class="aui-list-item-input">
+                        <input readonly="readonly" id="problemDisposal_endTime" name="problemDisposal.endTime" type="text" placeholder="处理结束时间" tapmode/>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        <ul class="aui-list aui-form-list aui-margin-b-15">
+            <li class="aui-list-header">处理过程</li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">维修方式</div>
+                    <div class="aui-list-item-input">
+                    	<input type="hidden" name="problemDisposal.disposalMode" value="2"/>
+                    	<div id="problemDisposal_disposalMode" class="aui-bar aui-bar-btn aui-bar-btn-sm" style="width:100%;">
+					        <div class="aui-bar-btn-item aui-active" field="2">维修</div>
+					        <div class="aui-bar-btn-item" field="1">改造</div>
+					        <div class="aui-bar-btn-item" field="3">更换</div>
+					        <div class="aui-bar-btn-item" field="4">新增</div>
+					    </div>
+                    </div>
+                </div>
+            </li>
+            <li id="li_problemDisposal_cause" class="aui-list-item" style="display: none;">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">故障主因</div>
+                    <div class="aui-list-item-input">
+                        <select id="problemDisposal_cause" name="problemDisposal.cause">
+                        	<option value="2">突发故障</option>
+                        	<option value="1">人为故障</option>
+                        	<option value="3">责任故障</option>
+                        	<option value="4">自然老化</option>
+                        </select>
+                    </div>
+                </div>
+            </li>
+            <li id="li_problemDisposal_causeRemark" class="aui-list-item" style="display: none;">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">主因说明</div>
+                    <div class="aui-list-item-input">
+                        <textarea name="problemDisposal.causeRemark" placeholder="请输入主因说明"></textarea>
+                    </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">处理过程</div>
+                    <div class="aui-list-item-input">
+                        <textarea name="problemDisposal.process" placeholder="请输入处理过程"></textarea>
+                    </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+            	<div class="aui-card-list" style="width:100%;">
+		            <div class="aui-card-list-header" style="padding-left:0;">
+		                <div>维护人员</div>
+		                <i class="aui-iconfont aui-icon-plus aui-btn-outlined my-btn-add" tapmode onclick="fnQueryUsers()"></i>
+		            </div>
+		            <div id="disposal_users_div" class="aui-card-list-content">
+		            	<input type="hidden" name="problemDisposal.disposalUserIds"/>
+		           	</div>
+		        </div>
+            </li>
+        </ul>
+        <ul class="aui-list aui-form-list">
+            <li class="aui-list-header">处理结果</li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">故障状态</div>
+                    <div class="aui-list-item-input">
+                        <input type="hidden" name="problemDisposal.status" value="1"/>
+                        <div id="problemDisposal_status" class="aui-bar aui-bar-btn aui-bar-btn-sm" style="width:100%;">
+					        <div class="aui-bar-btn-item aui-active" field="1">未确诊</div>
+					        <div class="aui-bar-btn-item" field="2">已确诊</div>
+					        <div class="aui-bar-btn-item" field="3">已排除</div>
+					    </div>
+                    </div>
+                </div>
+            </li>
+            <li id="pName" class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">处理计划</div>
+                    <div class="aui-list-item-input">
+                    	<input type="hidden" name="problemDisposal.planType.id" value="1"/>
+                        <div id="problemDisposal_planType_id" class="aui-bar aui-bar-btn aui-bar-btn-sm" style="width:100%;">
+					        <div class="aui-bar-btn-item aui-active" field="1">继续处理</div>
+					        <div class="aui-bar-btn-item" field="2">暂不处理</div>
+					        <div class="aui-bar-btn-item" field="3">不处理</div>
+					    </div>
+                    </div>
+                </div>
+            </li>
+            <li id="sysFuncIds_li" class="aui-list-item" style="display: none;">
+            	<div class="aui-card-list" style="width:100%;">
+		            <div class="aui-card-list-header" style="padding-left:0;">
+		                <div>功能缺失</div>
+		                <i class="aui-iconfont aui-icon-plus aui-btn-outlined my-btn-add" tapmode onclick="fnQuerySysFuncItems()"></i>
+		            </div>
+		            <div id="sysFuncIds_div" class="aui-card-list-content">
+		            	<input type="hidden" name="sysFuncIds"/>
+		           	</div>
+		        </div>
+            </li>
+            <li id="devicePlaceIds_li" class="aui-list-item" style="display: none;">
+            	<div class="aui-card-list" style="width:100%;">
+		            <div class="aui-card-list-header" style="padding-left:0;">
+		                <div>功能位置</div>
+		                <i class="aui-iconfont aui-icon-plus aui-btn-outlined my-btn-add" tapmode onclick="fnQueryDevicePlaces()"></i>
+		            </div>
+		            <div id="devicePlaceIds_div" class="aui-card-list-content">
+		            	<input type="hidden" name="problemDisposal.devicePlaceIds"/>
+		            	<!--<div class="aui-label aui-label-info">设备功能故障&nbsp;<i class="aui-iconfont aui-icon-close"></i></div>
+		            	<div class="aui-label aui-label-info">设备功能故障&nbsp;<i class="aui-iconfont aui-icon-close"></i></div>-->
+		           	</div>
+		        </div>
+            </li>
+            <li id="defer_1" class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">申请缓修</div>
+                    <div class="aui-list-item-input">
+                        <label><input class="aui-radio" type="radio" name="problemDisposal.isDefer"> 是</label>
+                        <label><input class="aui-radio" type="radio" name="problemDisposal.isDefer" checked> 否</label>
+                    </div>
+                </div>
+            </li>
+            <li id="defer_2" class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label">缓修天数</div>
+                    <div class="aui-list-item-input">
+                        <input name="problemDisposal.deferDay" type="number" placeholder="请输入缓修天数"/>
+                    </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div id="planDesc_span" class="aui-list-item-label">计划描述</div>
+                    <div class="aui-list-item-input">
+                        <textarea name="problemDisposal.planDesc" placeholder="请输入计划描述"></textarea>
+                    </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+            	<div class="aui-card-list" style="width:100%;">
+		            <div class="aui-card-list-header" style="padding-left:0;">
+		                <div>维修照片</div>
+		            </div>
+		            <div id="img_list" class="aui-card-list-content">
+		            	<!--
+		            	<div class="aui-list-item-media" style="float:left;">
+			            	<img class="aui-list-img-sm" src="../../../image/error-img.png"/>
+			            	<span class="my-del-badge aui-iconfont aui-icon-close"></span>
+		            	</div>
+		            	-->
+		            	<div class="my-add-img" style="float:left;" tapmode onclick="fnGetPicture()"><span class="aui-iconfont aui-icon-plus"></span></div>
+		           	</div>
+		        </div>
+            </li>
+        </ul>
+ 	</div>
+ 	</form>
+ 	<div style="padding: 0 0.75rem;">
+		<button type="button" style="margin:0.8rem 0;" class="aui-btn aui-btn-info aui-btn-block" tapmode onclick="fnSubmit(this)">
+			保存
+		</button>
+	</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/aui-tab.js"></script>
+<script type="text/javascript" src="../../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../../script/aui-dialog.js"></script>
+<script type="text/javascript" src="../../../script/aui-actionsheet.js" ></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/picker.min.js"></script>
+<script type="text/javascript" src="../../../script/date.picker.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+	var serverUrl = null;
+	var cur_user = null;
+	
+	var toast = new auiToast();
+	var dialog = new auiDialog();
+	var actionsheet = new auiActionsheet();
+	
+	apiready = function(){
+		serverUrl = $api.getStorage("gmms_url");
+		cur_user = $api.getStorage("user");
+		window.setTimeout(function(){
+			fnInit();
+		},300);
+		
+		$("#disposal_users_div").on('click','.aui-icon-close',function(){
+			$(this).parent().remove();
+			if($("#disposal_users_div").find(".aui-label").length>0){
+				var idStr = '';
+				$("#disposal_users_div").find(".aui-label").each(function(){
+					idStr += ','+$(this).attr('field');
+				});
+				$("#disposal_users_div").find("input").val(idStr.substring(1));
+			}else{
+				$("#disposal_users_div").find("input").val('');
+			}
+		});
+		$("#sysFuncIds_div").on('click','.aui-icon-close',function(){
+			$(this).parent().remove();
+			if($("#sysFuncIds_div").find(".aui-label").length>0){
+				var idStr = '';
+				$("#sysFuncIds_div").find(".aui-label").each(function(){
+					idStr += ','+$(this).attr('field');
+				});
+				$("#sysFuncIds_div").find("input").val(idStr.substring(1));
+			}else{
+				$("#sysFuncIds_div").find("input").val('');
+			}
+		});
+		$("#devicePlaceIds_div").on('click','.aui-icon-close',function(){
+			$(this).parent().remove();
+			if($("#devicePlaceIds_div").find(".aui-label").length>0){
+				var idStr = '';
+				$("#devicePlaceIds_div").find(".aui-label").each(function(){
+					idStr += ','+$(this).attr('field');
+				});
+				$("#devicePlaceIds_div").find("input").val(idStr.substring(1));
+			}else{
+				$("#devicePlaceIds_div").find("input").val('');
+			}
+		});
+		
+		var startTimePicker = null;
+		$('#problemDisposal_startTime').on('click',function(){
+			if(startTimePicker == null){
+				startTimePicker = new DatePicker();
+			}
+			startTimePicker.show({
+				frameBounces:true,
+				type: 'datetime'
+			},function(ret){
+				$('#problemDisposal_startTime').val(ret.year+'-'+ret.month+'-'+ret.day+' '+ret.hour+':'+ret.min+':00');
+			});
+		});
+		var endTimePicker = null;
+		$('#problemDisposal_endTime').on('click',function(){
+			if(endTimePicker == null){
+				endTimePicker = new DatePicker();
+			}
+			endTimePicker.show({
+				frameBounces:true,
+				type: 'datetime'
+			},function(ret){
+				$('#problemDisposal_endTime').val(ret.year+'-'+ret.month+'-'+ret.day+' '+ret.hour+':'+ret.min+':00');
+			});
+		});
+		
+		$('#img_list').on('click','.my-del-badge',function(){
+			$(this).parent().remove();
+		});
+		
+		api.parseTapmode();
+	};
+
+	
+	var bar = document.querySelectorAll(".aui-bar-btn");
+    if(bar){
+		for(var i=0; i<bar.length;i++){
+	        var d = bar[i];
+	        var tab = new auiTab({
+	            element:bar[i],
+	            repeatClick:true
+	        },function(ret){
+				$(ret.dom).parent().prev().val($(ret.dom).attr('field'));
+				//如果是处理计划
+				if(ret.dom.parentNode.getAttribute("id")=='problemDisposal_planType_id'){
+					
+				}
+				//如果是故障状态变更
+				if(ret.dom.parentNode.getAttribute("id")=='problemDisposal_status'){
+					var val = $(ret.dom).attr('field');
+					if(val=='3'){
+						$('#planDesc_span').html('处理结果:');
+						$("textarea[name='problemDisposal.planDesc']").attr('placeholder','请输入处理结果');
+						$('#pName').hide();
+						$('#sysFuncIds_li').show();
+						$('#devicePlaceIds_li').show();
+						$('#defer_1').hide();
+						$('#defer_2').hide();
+					}else{
+						$('#planDesc_span').html('计划描述:');
+						$("textarea[name='problemDisposal.planDesc']").attr('placeholder','请输入计划描述');
+						$('#pName').show();
+						$('#sysFuncIds_li').hide();
+						$('#devicePlaceIds_li').hide();
+						$('#defer_1').show();
+						$('#defer_2').show();
+					}
+				}
+	        });
+	    }
+    }
+  
+    //初始化
+    function fnInit(){
+    	toast.loading({
+            title:"加载中...",
+            duration:2000
+        });
+    	api.ajax({
+	        url: serverUrl + '/modules/mobile/defect/fault-repair-rbi!goEditProblemDisposal.action',
+            method: 'GET',
+            timeout: 10,
+            data: {
+                values: {
+                	lesseeId: cur_user.lesseeId,
+                	problemId: api.pageParam.problemId
+                }
+            }
+        },function(ret,err){
+        	toast.hide();
+        	if(ret){
+        		$("input[name='problemDisposal.lesseeId']").val(ret.problem.lesseeId);
+        		$("input[name='problemDisposal.problem.id']").val(ret.problem.id);
+        		$("input[name='itemid']").val(ret.problem.itemid);
+        		$("input[name='bsnum']").val(api.pageParam.bsnum);
+				$("input[name='documentId']").val(api.pageParam.documentId);
+				$("input[name='problem.id']").val(ret.problem.id);
+				
+				$('#problem_discoverTime').val((new Date(ret.problem.discoverTime)).Format("yyyy-MM-dd hh:mm:ss"));
+				$('#problem_createTime').val((new Date(ret.problem.createTime)).Format("yyyy-MM-dd hh:mm:ss"));
+        		$('#preEndTime').val(ret.preEndTime);
+        		$('#firstStartTime').val(ret.firstStartTime);
+        		
+        		if(ret.PROBLEM_CAUSE_USE==='1'){
+        			$('#li_problemDisposal_cause').show();
+        		}else{
+        			$('#li_problemDisposal_cause').remove();
+        		}
+        		if(ret.PROBLEM_CAUSE_REMARK_USE==='1'){
+        			$('#li_problemDisposal_causeRemark').show();
+        		}else{
+        			$('#li_problemDisposal_causeRemark').remove();
+        		}
+        	}
+        });
+        $("input[name='problemDisposal.disposalUserIds']").val(cur_user.id);
+        $("#disposal_users_div").append('<div class="aui-label aui-label-info" field="'+cur_user.id+'">'+cur_user.name+'&nbsp;<i class="aui-iconfont aui-icon-close"></i></div>');
+    }
+    
+    function fnGetPicture(){
+    	actionsheet.init({
+            frameBounces:true,//当前页面是否弹动，（主要针对安卓端）
+            cancelTitle:'取消',
+            buttons:['拍照','图库选择']
+        },function(ret){
+            if(ret){
+            	var sourceType = null;
+            	if(ret.buttonIndex==1){
+            		sourceType = 'camera';
+            	}
+            	if(ret.buttonIndex==2){
+            		sourceType = 'library';
+            	}
+            	if(sourceType==null){return;}
+            	api.getPicture({
+				    sourceType: sourceType,
+				    encodingType: 'jpg',
+				    mediaValue: 'pic',
+				    destinationType: 'base64',
+				    allowEdit: true,
+				    quality: 50,
+				    saveToPhotoAlbum: false
+				}, function(ret, err) {
+				    if (ret && ret.base64Data!='') {
+				        $('#img_list').prepend(
+				        	'<div class="aui-list-item-media" style="float:left;">'+
+				        	'<input type="hidden" name="base64Pics" value="'+ret.base64Data+'"/>'+
+				        	'<img class="aui-list-img-sm" src="'+ret.base64Data+'"/>'+
+			            	'<span class="my-del-badge aui-iconfont aui-icon-close"></span></div>');
+				    }
+				});
+            }
+        })
+    }
+    
+    function fnSubmit(_this){
+    	if($('#problemDisposal_startTime').val() === undefined || $('#problemDisposal_startTime').val() === null  || $('#problemDisposal_startTime').val() === ""){
+			dialog.alert({
+                title:"提示",
+                msg:'处理开始时间为必填，请选择!',
+                buttons:['确定']
+            });
+			return;
+		}
+		if($('#problemDisposal_endTime').val() === undefined || $('#problemDisposal_endTime').val() === null || $('#problemDisposal_endTime').val() === ""){
+			dialog.alert({
+                title:"提示",
+                msg:'处理结束时间为必填，请选择!',
+                buttons:['确定']
+            });
+			return;
+		}
+		var sTime = document.getElementById("problemDisposal_startTime").value;
+		var eTime = document.getElementById("problemDisposal_endTime").value;
+		var pTime = document.getElementById("problem_createTime").value;
+		var preEndTime = document.getElementById("preEndTime").value;
+		var s1 = new Date(sTime.replace(/\-/g,'/'));
+		var e1 = new Date(eTime.replace(/\-/g,'/'));
+		var p1 = new Date(pTime.replace(/\-/g,'/'));
+		if(preEndTime!=null && preEndTime!=""){
+			var preE=new Date(preEndTime.replace(/\-/g,'/'));
+			if(s1<=preE){
+				dialog.alert({
+	                title:"提示",
+	                msg:'处理开始时间不能小于上一条处理记录的结束时间!',
+	                buttons:['确定']
+	            });
+				return;
+			}
+		}
+		if(s1<=p1){
+			dialog.alert({
+                title:"提示",
+                msg:'处理开始时间不能小于登记时间!',
+                buttons:['确定']
+            });
+			return;
+		}
+	
+		if(e1<s1){
+			dialog.alert({
+                title:"提示",
+                msg:'处理结束时间不能小于处理开始时间!',
+                buttons:['确定']
+            });
+			return;
+		}
+	
+		if($("textarea[name='problemDisposal.process']").val()===''){
+			dialog.alert({
+                title:"提示",
+                msg:'处理过程为必填，请填写!',
+                buttons:['确定']
+            });
+			return;
+		}
+		if($("input[name='problemDisposal.disposalUserIds']").val()===''){
+			dialog.alert({
+                title:"提示",
+                msg:'维护人员为必填，请填写!',
+                buttons:['确定']
+            });
+			return;
+		}
+		if($("input[name='base64Pics']").length>3){
+			dialog.alert({
+                title:"提示",
+                msg:'维修照片请在三张内!',
+                buttons:['确定']
+            });
+		 	return;
+		}
+		
+		if($("input[name='problemDisposal.status']").val()==="3"){
+			$("#problem_problemStatus_id").val(8);
+		}
+		
+	 	toast.loading({
+            title:"提交中...",
+            duration:2000
+        });
+        $(_this).attr('disabled','disabled');
+		var formData = $('#disposal_form').serializeObject();
+		formData.userId = cur_user.id;
+		api.ajax({
+	        url: serverUrl+'/modules/mobile/defect/fault-repair-rbi!saveFlow.action',
+	        method: 'POST',
+            timeout: 15,
+	        data:{
+	        	values: formData
+	        }
+        },function(ret,err){
+        	toast.hide();
+        	$(_this).removeAttr('disabled');
+        	if(ret){
+        		dialog.alert({
+	                title:"提示",
+	                msg: ret.msg,
+	                buttons:['确定']
+	            },function(rett){
+	            	if(ret.success){
+	            		api.execScript({
+	            			name: 'defect_input',
+	            			frameName: 'defect_input_frm',
+	                        script: 'fnFindProblemInfo();'
+                        });
+        				api.closeWin();
+        			}
+	            });
+        	}else{
+        		api.toast({msg:err.msg});
+        	}
+        });
+    }
+    
+    /**
+     * 选择用户 
+     */
+    function fnQueryUsers(){
+    	api.openWin({
+	        name: 'sel_useunit',
+	        url: './select/sel_useunit_win.html',
+	        pageParam: {
+	        	winName: api.winName,
+	        	frameName: api.frameName
+	        },
+          	animation: {
+              	type: 'movein'
+          	}
+        });
+    }
+    /**
+     * 选择用户回调方法 
+     */
+    function fnSetUserInfo(idStr,nameStr){
+    	var names = nameStr.split(',');
+    	var ids = idStr.split(',');
+    	var htmlStr = '';
+    	$.each(names,function(i,name){
+    		htmlStr += '<div class="aui-label aui-label-info" field="'+ids[i]+'">'+name+'&nbsp;<i class="aui-iconfont aui-icon-close"></i></div>';
+    	});
+    	var dval = $("input[name='problemDisposal.disposalUserIds']").val();
+    	if(dval==''||dval==null){
+    		$("input[name='problemDisposal.disposalUserIds']").val(idStr);
+    	}else{
+    		$("input[name='problemDisposal.disposalUserIds']").val(dval+','+idStr);
+    	}
+    	$("#disposal_users_div").append(htmlStr);
+    }
+    
+    /**
+     * 选择功能缺失 
+     */
+    function fnQuerySysFuncItems(){
+    	api.openWin({
+	        name: 'sel_sysfunc',
+	        url: './select/sel_sysfunc_win.html',
+	        pageParam: {
+	        	winName: api.winName,
+	        	frameName: api.frameName
+	        },
+          	animation: {
+              	type: 'movein'
+          	}
+        });
+    }
+    /**
+     * 选择功能缺失回调 
+     */
+    function fnSetSysFuncs(idStr,nameStr){
+    	var names = nameStr.split(',');
+    	var ids = idStr.split(',');
+    	var htmlStr = '';
+    	$.each(names,function(i,name){
+    		htmlStr += '<div class="aui-label aui-label-info" field="'+ids[i]+'">'+name+'&nbsp;<i class="aui-iconfont aui-icon-close"></i></div>';
+    	});
+    	var fval = $("input[name='sysFuncIds']").val();
+    	if(fval==''||fval==null){
+    		$("input[name='sysFuncIds']").val(idStr);
+    	}else{
+    		$("input[name='sysFuncIds']").val(fval+','+idStr);
+    	}
+    	$("#sysFuncIds_div").append(htmlStr);
+    }
+    
+    /**
+     * 选择功能位置
+     */
+    function fnQueryDevicePlaces(){
+    	var itemId = $('#disposal_form').find("input[name='itemid']").val();
+    	api.openWin({
+	        name: 'sel_device_place',
+	        url: './select/sel_device_place_win.html',
+	        pageParam: {
+	        	winName: api.winName,
+	        	frameName: api.frameName,
+	        	itemId: itemId
+	        },
+          	animation: {
+              	type: 'movein'
+          	}
+        });
+    }
+    /**
+     * 选择功能位置回调
+     */
+    function fnSetDevicePlaces(idStr,nameStr){
+    	var names = nameStr.split(',');
+    	var ids = idStr.split(',');
+    	var htmlStr = '';
+    	$.each(names,function(i,name){
+    		htmlStr += '<div class="aui-label aui-label-info" field="'+ids[i]+'">'+name+'&nbsp;<i class="aui-iconfont aui-icon-close"></i></div>';
+    	});
+    	var dval = $("input[name='problemDisposal.devicePlaceIds']").val();
+    	if(dval==''||dval==null){
+    		$("input[name='problemDisposal.devicePlaceIds']").val(idStr);
+    	}else{
+    		$("input[name='problemDisposal.devicePlaceIds']").val(dval+','+idStr);
+    	}
+    	$("#devicePlaceIds_div").append(htmlStr);
+    }
+</script>
+</html>

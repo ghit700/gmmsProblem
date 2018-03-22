@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/mui.min.css"/>
+    <style>
+        body{
+            
+        }
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header" style="background-color: #1081DA">
+
+    <h1 class="mui-title" style="color: white;">首页</h1>
+</header>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../script/common.js"></script>
+<script type="text/javascript">
+    apiready = function(){
+        initHeader();
+        openActionListFrame();
+        openBusinessTodoFrame();
+    };
+    function openActionListFrame() {
+        api.openFrame({
+            name: 'home-action-table',
+            url: './home-action-table.html',
+            rect: {
+                x: 0,
+                y: headerHeight,
+                w: 'auto',
+                h: 180
+            },
+            pageParam:{
+                headerHeight:headerHeight,
+                frameHeight: api.frameHeight
+            },
+            bounces: false
+        });
+    }
+    function openBusinessTodoFrame() {
+        api.openFrame({
+            name: 'home-businesstodo',
+            url: './home-businesstodo.html',
+            rect: {
+                x: 0,
+                y: headerHeight+220,
+                w: 'auto',
+                h: api.frameHeight-headerHeight-220
+            },
+            bounces: true
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>选择设备</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/aui.css"/>
+
+    <style>
+        body {
+
+        }
+
+        .device-container div {
+            margin-bottom: 5px;
+        }
+
+        .aui-searchbar {
+            background: transparent;
+        }
+
+        .aui-bar-nav .aui-searchbar-input {
+            background-color: #ffffff;
+        }
+
+        .aui-bar-light .aui-searchbar-input {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+<div class="mui-content" id="select-device" v-cloak>
+    <div class="aui-searchbar aui-text-info" id="search">
+        <div class="aui-searchbar-input aui-border-radius">
+            <i class="aui-iconfont aui-icon-search"></i>
+            <input v-model="content" type="search" placeholder="输入设备名称或品牌名称搜索" id="search-input">
+            <div class="aui-searchbar-clear-btn">
+                <i class="aui-iconfont aui-icon-close"></i>
+            </div>
+        </div>
+        <div class="aui-searchbar-btn aui-text-info" style="margin-right: 0" tapmode>搜索</div>
+    </div>
+    <form class="mui-input-group" style="margin-top: -5px">
+        <div class="mui-input-row mui-checkbox mui-left" style="height: auto;padding: 5px 0"
+             v-for="device in lstDevices">
+            <div class="device-container"
+                 style="padding-right: 15px;padding-left: 58px;padding-top: 5px;">
+                <div>
+                    <span style="color: #00acc1">{{device.name}}</span>
+                    <span style="color: #00acc1" class="mui-pull-right">{{device.brandName}}</span>
+                </div>
+                <div>
+                    <span style="color: #dedede">{{device.sequenceCode}}</span>
+                    <span class="mui-pull-right">{{device.amount}}</span>
+                </div>
+            </div>
+            <input v-bind:value="device.id" type="checkbox" v-model="selectDeviceIds"
+                   style="margin-top: 15px;width: 100%">
+        </div>
+    </form>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/vue.min.js"></script>
+<script type="text/javascript">
+    var selectDeviceModel;
+    apiready = function () {
+        selectDeviceModel = new Vue({
+            el: '#select-device',
+            data: {
+                lstDevices: [],
+                selectDeviceIds: [],
+                content: ''
+            },
+            mounted:function () {
+                var searchBar = document.querySelector(".aui-searchbar");
+                var searchBarInput = document.querySelector(".aui-searchbar input");
+                var searchBarBtn = document.querySelector(".aui-searchbar .aui-searchbar-btn");
+                var searchBarClearBtn = document.querySelector(".aui-searchbar .aui-searchbar-clear-btn");
+                if (searchBar) {
+                    searchBarInput.oninput = function () {
+                        if (this.value.length) {
+                            searchBarClearBtn.style.display = 'block';
+                        } else {
+                            searchBarClearBtn.style.display = 'none';
+                        }
+                    }
+                }
+                searchBarClearBtn.onclick = function () {
+                    this.style.display = 'none';
+                    searchBarInput.value = '';
+                }
+                searchBarBtn.onclick = function () {
+                    var keywords = searchBarInput.value;
+                    if (keywords.length) {
+                        searchBarInput.blur();
+                        selectDeviceModel.searchDevice();
+                    } else {
+                        searchBarInput.value = '';
+                        searchBarInput.blur();
+                    }
+                }
+            },
+            methods: {
+                searchDevice: function () {
+                    api.showProgress({
+                        style: 'default',
+                        animationType: 'fade',
+                        title: '载入中...',
+                        modal: true
+                    });
+                    post("/modules/mobile/defect/problem-deal!selectDeviceForInstall.action", {
+                        flag: '0',
+                        deviceParentId: api.pageParam.deviceParentId,
+                        userId: $api.getStorage('user').id,
+                        content: selectDeviceModel.content
+                    }, function (ret) {
+                        selectDeviceModel.lstDevices=[];
+                        $.each(ret.data, function (i, device) {
+                            selectDeviceModel.lstDevices.push(device);
+                        });
+                    });
+                },
+            }
+        });
+        selectDeviceModel.searchDevice();
+    };
+    //安装设备或零配件
+    function installDevice() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '安装中...',
+            modal: true
+        });
+        var deviceIds = "";
+        $.each(selectDeviceModel.selectDeviceIds, function (i, id) {
+            if (deviceIds == "") {
+                deviceIds += id;
+            } else {
+                deviceIds += "," + id;
+            }
+        });
+        post("/modules/mobile/defect/problem-deal!installDevice.action", {
+            flag: 0,
+            deviceIds: deviceIds,
+            devicePlaceId: api.pageParam.devicePlaceId,
+            deviceParentId: api.pageParam.deviceParentId,
+            problemId: api.pageParam.problemId,
+            userId: $api.getStorage('user').id
+        }, function (ret) {
+            api.execScript({
+                name: api.pageParam.openFrameName + "-win",
+                frameName: api.pageParam.openFrameName,
+                script: 'update();'
+            });
+
+            api.closeWin();
+        });
+    }
+</script>
+</html>

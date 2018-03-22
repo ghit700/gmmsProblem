@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>title</title>
+		<link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+		<link rel="stylesheet" type="text/css" href="../../../css/common.css" />
+		<style>
+			html, body {
+				min-height: 100%;
+				background-color: #efeff4;
+			}
+			.egret-img {
+				position: absolute;
+			}
+			.egret-img img {
+				height: 25px;
+				width: 25px;
+				padding: 10px;
+				vertical-align: top;
+			}
+			.egret-right {
+				position: absolute;
+				right: 1px;
+				height: 25px;
+				width: 25px;
+				padding: 10px;
+				vertical-align: top;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="header">
+			<div class='egret-img event-back'>
+				<img src="../../../image/back_btn.png" alt="" onclick="finish()"/>
+			</div>
+			<img id="btnRight" class="egret-right" src="../../../image/header-finish.png" onclick="right()"/>
+			<h1></h1>
+		</div>
+	</body>
+	<script type="text/javascript" src="../../../script/api.js"></script>
+	<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+	<script type="text/javascript" src="../../../script/common.js"></script>
+	<script type="text/javascript">
+		apiready = function() {
+			fnReadyHeader();
+			$('h1').html(api.pageParam.itemName);
+            switch (api.pageParam.type) {
+                case 1 :
+                    $('h1').append('(年检查)');
+                    break;
+                case 2 :
+                    $('h1').append('(季检查)');
+                    break;
+                case 3 :
+                    $('h1').append('(月检查)');
+                    break;
+                case 4 :
+                    $('h1').append('(周检查)');
+                    break;
+                case 5 :
+                    $('h1').append('(日检查)');
+                    break;
+                case 0 :
+                    $('h1').append('(夜间检查)');
+                    break;
+            }
+			fnReadyKeyback();
+			openFrame();
+		};
+		function openFrame() {
+			api.openFrame({
+				name : 'check-tack-detail-register',
+				url : './check-tack-detail-register.html',
+				bounces : false,
+				pageParam : {
+					taskItemId : api.pageParam.taskItemId,
+					inspectionItemId : api.pageParam.inspectionItemId,
+					componentId : api.pageParam.componentId,
+					taskDetailId : api.pageParam.taskDetailId,
+					devicePlaceId : api.pageParam.devicePlaceId,
+					name : api.pageParam.name,
+					titleHeight:headerHeight,
+					type:api.pageParam.type,
+					status: api.pageParam.status
+				},
+				rect : {
+					x : 0,
+					y : headerHeight,
+					w : 'auto',
+					h : 'auto'
+				}
+			});
+		}
+
+		//关闭
+		function finish() {
+			api.closeWin({});
+		}
+
+		//保存提交
+		function right() {
+			var jsfun = 'showDialog()';
+			api.execScript({
+				frameName : 'check-tack-detail-register',
+				script : jsfun
+			});
+		}
+
+		function change() {
+			document.getElementById("btnRight").style.display = "none";
+		}
+	</script>
+</html>

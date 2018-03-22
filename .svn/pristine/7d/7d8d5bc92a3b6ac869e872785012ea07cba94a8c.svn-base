@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <!--<link rel="stylesheet" type="text/css" href="css/api.css"/>-->
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+        }
+
+        .top-container {
+            width: 100%;
+            position: fixed;
+            top: 0;
+            background-color: white;
+            border-bottom: 1px #dedede solid;
+        }
+
+        .mui-media-body h4 {
+            margin-top: 13px;
+        }
+    </style>
+</head>
+<body>
+<div class="mui-content ">
+    <!--<div class="mui-card">
+        <div class="mui-card-header ">
+            1111
+        </div>
+        <div class="mui-card-content" >
+            <div id="' + tiv.tvId + '" class="mui-card-header mui-card-media" style="height:40vw;background-image:url(../../../image/imgloading.jpg)"></div>
+        </div>
+        <div class="mui-card-footer" >
+            <span class="mui-card-link">登记时间：2016-12-14 14:05</span>
+        </div>
+    </div>-->
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/cache.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        fnInitDB();
+        initData();
+        loadData();
+    }
+    var imageBrowser;
+    function initData() {
+        imageBrowser = api.require('imageBrowser');
+    }
+
+    var lstTaskItemValue;
+    var img_url;
+    function loadData() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '载入中...',
+            modal: true
+        });
+        var ret=queryAbnormalTaskItemValue({
+            "dpId": api.pageParam.dpId,
+            "taskId": api.pageParam.taskId,
+            "userId": $api.getStorage('user').id
+        });
+        if(ret.success){
+            lstTaskItemValue = ret.data;
+            if (lstTaskItemValue.length > 0) {
+                var html = "";
+                $.each(lstTaskItemValue, function (i, tiv) {
+                    if (tiv.photos != undefined && tiv.photos.length > 0) {
+                        var photoHtml="";
+                        if(tiv.photos[0].indexOf('annexdownload')>=0){
+                            photoHtml = '<div id="' + tiv.tvId + '" class="mui-card-header mui-card-media" style="height:40vw;background-image:url(../../../image/imgloading.jpg)"></div>';
+                            imgCache(tiv.tvId, tiv.photos);
+                        }else{
+                            photoHtml = '<div id="' + tiv.tvId + '"  class="mui-card-header mui-card-media" style="height:40vw;background-image:url('+tiv.photos[0]+')"></div>';
+                            $('#' + tiv.tvId).on('click', function (e) {
+                                fnShowImg(tiv.photos);
+                            });
+                        }
+                        html += '<div class="mui-card"><div class="mui-card-header ">' + tiv.content + '</div><div class="mui-card-content" >' + photoHtml + '</div><div class="mui-card-footer" ><span class="mui-card-link">登记时间：' + tiv.time + '</span></div></div>';
+                    } else {
+                        html += '<div class="mui-card"><div class="mui-card-content"><div class="mui-card-header ">' + tiv.content + '</div></div><div class="mui-card-footer" ><span class="mui-card-link">登记时间：' + tiv.time + '</span></div></div>';
+                    }
+                });
+                $('.mui-content').html(html);
+            }
+        }
+        api.hideProgress();
+    }
+
+    function fnShowImg(imgUrls) {
+        imageBrowser.openImages({
+            showList: false,
+            activeIndex: 0,
+            tapClose: true,
+            imageUrls: imgUrls
+        });
+    }
+
+    function imgCache(id, url) {
+        cacheImg($api.getStorage('gmms_url') + url[0], function (imgPath) {
+            $('#' + id).css('background-image', 'url(' + imgPath + ")");
+            url[0] = imgPath;
+            $('#' + id).on('click', function (e) {
+                fnShowImg(url);
+            });
+        });
+        $.each(url, function (i, data) {
+            cacheImg($api.getStorage('gmms_url') + data, function (imgPath) {
+                url[i] = imgPath;
+            });
+        });
+    }
+</script>
+</html>

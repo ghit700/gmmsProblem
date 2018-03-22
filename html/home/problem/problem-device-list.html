@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+    </style>
+</head>
+<body>
+<ui class="mui-table-view" id="devcie" v-cloak>
+    <li class="mui-table-view-cell " v-for="device in lstDevices">
+        <div>
+                <span style="color: #00acc1">
+                {{device.name}}
+                </span>
+            <span class="mui-pull-right" style="color: #dedede">
+                {{device.sequenceCode}}
+                </span>
+        </div>
+        <div style="margin: 10px 0">{{device.brandName}}</div>
+        <div class="mui-input-row">
+            <label style="width: 25%;margin-top: 7px; padding: 0;
+            line-height: unset">设备状态</label>
+            <div class="mui-segmented-control" style="width:auto;">
+                <a class="mui-control-item " v-bind:class="{'mui-active':device.deviceStatus==1}"
+                   style="line-height: normal"
+                   v-on:click="watchDeviceStatus(device,1)">
+                    正常
+                </a>
+                <a class="mui-control-item" v-bind:class="{'mui-active':device.deviceStatus==2}"
+                   style="line-height: normal;"
+                   v-on:click="watchDeviceStatus(device,2)">
+                    故障
+                </a>
+                <a class="mui-control-item " v-bind:class="{'mui-active':device.deviceStatus==3}"
+                   style="line-height: normal;"
+                   v-on:click="watchDeviceStatus(device,3)">
+                    不确定
+                </a>
+                <a class="mui-control-item " v-bind:class="{'mui-active':device.deviceStatus==4}"
+                   style="line-height: normal;"
+                   v-on:click="watchDeviceStatus(device,4)">
+                    报废
+                </a>
+
+            </div>
+        </div>
+        <div style="margin-top: 10px;border-top: solid #dedede 1px;padding-top: 5px">
+            <button type="button" class="mui-btn mui-btn-danger mui-btn-outlined mui-pull-right"
+                    style="margin-right: 10px" v-on:click="uninstallDevice(device.id)">
+                拆零配件
+            </button>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="border-bottom: solid #dedede 1px">
+        <a class="mui-navigate-right" v-on:click="selectDeviceForInstall()">
+            安装零配件
+        </a>
+    </li>
+</ui>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript">
+    var deviceModel;
+    apiready = function () {
+        deviceModel = new Vue({
+            el: '#devcie',
+            data: {
+                lstDevices: []
+            },
+            create: function () {
+                this.update();
+            },
+            methods: {
+                watchDeviceStatus: function (device, status) {
+                    device.deviceStatus = status;
+                },
+                uninstallDevice: function (deviceId) {
+                    api.confirm({
+                        title: '温馨提示',
+                        msg: '确定要拆除改零配件吗？',
+                        buttons: ['是', '否']
+                    }, function (ret, err) {
+                        if (ret.buttonIndex == 1) {
+                            api.showProgress({
+                                style: 'default',
+                                animationType: 'fade',
+                                title: '拆除零配件中...',
+                                modal: true
+                            });
+                            post("/modules/mobile/defect/problem-deal!uninstallDevice.action", {
+                                id: deviceId,
+                                deviceParentId: api.pageParam.deviceParentId,
+                                problemId: api.pageParam.problemId,
+                                userId: $api.getStorage('user').id
+                            }, function (ret) {
+                                update();
+                                api.toast({
+                                    msg: ret.data,
+                                    duration: 2000,
+                                    location: 'bottom'
+                                });
+                            });
+                        }
+                    });
+                },
+                selectDeviceForInstall: function () {
+                    api.openWin({
+                        name: 'problem-device-select-win',
+                        url: './problem-device-select-header.html',
+                        reload: true,
+                        pageParam: {
+                            name: '选择设备',
+                            frameName: 'problem-device-select',
+                            methodFrame: 'installDevice();',
+                            openFrameName: api.pageParam.frameName,
+                            method: 'installDevice();',
+                            url: 'widget://html/home/problem/problem-device-select.html',
+                            deviceParentId: api.pageParam.deviceParentId,
+                            problemId: api.pageParam.problemId
+                        }
+                    });
+                }
+            }
+        });
+        update();
+    };
+    function update() {
+        post("/modules/mobile/defect/problem-deal!queryChildDeviceByParent.action", {
+            deviceParentId: api.pageParam.deviceParentId,
+        }, function (ret) {
+            deviceModel.lstDevices = [];
+            $.each(ret.data, function (i, device) {
+                deviceModel.lstDevices.push(device);
+            });
+        });
+    }
+    function installDevice() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '安装零配件中...',
+            modal: true
+        });
+        post("/modules/mobile/defect/problem-deal!changeDeviceStatues.action", {
+            list: JSON.stringify(deviceModel.lstDevices),
+        }, function (ret) {
+            api.toast({
+                msg: '安装完毕',
+                duration: 2000,
+                location: 'bottom'
+            });
+            api.closeWin();
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+            background-color: black;
+        }
+
+        .mui-header {
+            background-color: #1081DA
+        }
+
+        .egret-scan {
+            position: absolute;
+            left: 0;
+        }
+
+        .egret-scan img {
+            height: 40px;
+            width: 40px;
+            padding: 10px;
+            top: 5px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+<header id="header" class="mui-bar mui-bar-nav mui-header">
+    <a id="right_btn" class="mui-action-menu   mui-pull-left egret-scan" onclick="fnClose()"><img
+            src="../../../image/back_btn.png"/></a>
+    <h1 class="mui-title" style="color: white">二维码/条码</h1>
+</header>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/location.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript" src="../../../script/scan.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/ble.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        initHeader();
+        initVar();
+        fnInitDB();
+        api.parseTapmode();
+    };
+    var FNScanner;
+    var Scan;
+    var headerHeight;
+    //初始化值
+    function initVar() {
+        if (api.systemType == 'android') {
+            Scan = api.require('scan');
+        } else {
+            FNScanner = api.require('FNScanner');
+        }
+        api.addEventListener({
+            name: 'viewdisappear'
+        }, function (ret, err) {
+            api.closeWin();
+        });
+        api.addEventListener({
+            name: 'keyback'
+        }, function (ret, err) {
+            api.closeWin();
+            if (api.systemType != 'android') {
+                FNScanner.closeView();
+            }
+        });
+        headerHeight = $('#header').height();
+        openScan();
+    }
+    function openScan() {
+        var data = api.pageParam.data;
+        var type = api.pageParam.type;
+        var left = (api.winWidth - 260) / 2;
+        if (api.systemType == 'android') {
+            window.setTimeout(function () {
+                Scan.open({
+                    isSave: true
+                }, function (ret) {
+                    if (ret.status == 'success') {
+                        fnWin(ret.content.substring(5, 11), type, data, api.pageParam.url, "file://" + ret.imgPath);
+                    } else if (ret.status == 'finish') {
+                        window.setTimeout(function () {
+                            api.closeWin();
+                        }, 1000);
+
+                    }
+                });
+            }, 300);
+        } else {
+            FNScanner.openView({
+                autorotation: true,
+                rect: {
+                    x: 0,
+                    y: headerHeight,
+                    w: api.winWidth,
+                    h: api.winHeight
+                },
+                saveToAlbum: true,
+                saveImg: {
+                    path: 'fs://' + new Date().getDate() + '.jpg',
+                    w: 1024,
+                    h: 1366,
+                }
+            }, function (ret, err) {
+                if (ret.eventType == 'success') {
+                    fnWin(ret.content.substring(5, 11), type, data, api.pageParam.url, "file://" + ret.imgPath);
+                    FNScanner.closeView();
+
+                } else if (ret.eventType == 'show') {
+                    api.openFrame({
+                        name: 'line',
+                        url: './line.html',
+                        rect: {
+                            x: 0,
+                            y: headerHeight,
+                            w: 'auto',
+                            h: 'auto'
+                        },
+                        pageParam: {
+                            height: headerHeight,
+                            left: left
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    //打开手电
+    var status = 'off';
+    function openLight() {
+        if (status == 'off') {
+            status = 'on';
+        } else {
+            status = 'off';
+        }
+        if (api.systemType != 'android') {
+            FNScanner.switchLight({status: status});
+        }
+    }
+
+    function fnClose() {
+        api.closeWin();
+    }
+
+    //跳转到不同的win
+    function fnWin(content, type, data, url, imgSrc) {
+        fnInitDB();
+        gmms_url = $api.getStorage('gmms_url');
+        var pageParam;
+        var dpId = Number(content);
+        switch (type) {
+            case 'lyxf-check':
+                if (dpId == data.taskItem.dpId) {
+                    if (isHasChile(dpId)) {
+                        pageParam = {
+                            "taskId": data.taskItem.taskId,
+                            "devicePlaceId": data.taskItem.dpId,
+                            type: data.type,
+                            imgSrc: imgSrc,
+                            "name": data.taskItem.itemName,
+                        };
+                        recordScan(dpId, "widget://html/home/check/check-task.html", "check-task-child", pageParam);
+
+                    } else {
+                        pageParam = {
+                            "taskId": data.taskItem.taskId,
+                            "devicePlaceId": data.taskItem.dpId,
+                            "name": data.taskItem.name,
+                            "componentName": data.taskItem.componentName,
+                            type: data.type,
+                            roadLineName: data.taskItem.roadLineName,
+                            imgSrc: imgSrc
+                        };
+                        recordScan(dpId, url, "check-task-detail-content", pageParam);
+                    }
+                } else {
+                    showResult("经检测您现在未到设备现场");
+                }
+                break;
+            case 'lyxf-info':
+                pageParam = {
+                    dpId: dpId,
+                    imgSrc: imgSrc
+                };
+                recordScan(dpId, url, "device-place-body", pageParam);
+                break;
+            case 'lyxf-type-check':
+                var json = queryDevicePlaceInfo({
+                    dpId: dpId,
+                    type: data
+                });
+                if (json.success) {
+                    if (isHasChile(dpId)) {
+                        pageParam = {
+                            "taskId": json.data.taskId,
+                            "devicePlaceId": dpId,
+                            "type": data,
+                            "name": json.data.itemName,
+                            imgSrc: imgSrc
+                        };
+                        recordScan(dpId, "widget://html/home/check/check-task.html", "check-task-child", pageParam);
+                    } else {
+                        pageParam = {
+                            "taskId": json.data.taskId,
+                            "devicePlaceId": json.data.dpId,
+                            "name": json.data.name,
+                            "componentName": json.data.componentName,
+                            itemName: json.data.itemName,
+                            type: data,
+                            imgSrc: imgSrc
+                        };
+                        recordScan(dpId, "widget://html/home/check/check-task-detail-content.html", "check-task-detail-content", pageParam);
+                    }
+                } else {
+                    showResult('经检测您现在未到设备现场');
+                }
+
+                break;
+        }
+
+    }
+
+    //记录扫描的结果并比对gps
+    function recordScan(dpId, url, name, pageParam) {
+        fn(url, pageParam, name);
+//        var ibeaconName = queryDevicePlaceIbeaconById(dpId);
+//        if (ibeaconName != undefined) {
+//            var isArrive = false;
+//            $.each($api.getStorage('peripherals'), function (i, ibeacon) {
+//                if (ibeacon.name != undefined && ibeacon.name == ibeaconName) {
+//                    isArrive = true;
+//                    fn(url, pageParam, name);
+//                }
+//            });
+//            if (isArrive == false) {
+//                showResult('经检测您现在未到设备现场');
+//            }
+//
+//        } else {
+//            showResult("不存在该设备信息");
+//        }
+
+    }
+
+    //跳转到下一界面
+    function fn(url, pageParam, name) {
+        if (api.systemType == 'android') {
+            Scan.close();
+        }
+        window.setTimeout(function () {
+            api.openWin({
+                name: name,
+                url: url,
+                reload: true,
+                pageParam: pageParam,
+                vScrollBarEnabled: false,
+            });
+        }, 300);
+    }
+
+    function showResult(msg) {
+        var speechRecognizer = api.require('speechRecognizer');
+        speechRecognizer.read({
+            readStr: msg,
+            speed: 60,
+            volume: 60,
+            voice: 0,
+            rate: 16000,
+            audioPath: 'fs://speechRecogniser/scan.mp3'
+        }, function (ret, err) {
+            if (ret.status) {
+                ret.speakProgress
+            } else {
+            }
+        });
+        if (api.systemType == 'android') {
+            Scan.showToast({
+                msg: msg
+            });
+        } else {
+            api.toast({
+                msg: msg,
+                duration: 2000,
+                location: 'middle'
+            });
+        }
+        if (api.winName == 'scan' && api.systemType != 'android') {
+            window.setTimeout(function () {
+                openScan();
+            }, 2000);
+        }
+    }
+
+</script>
+</html>

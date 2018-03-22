@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+        }
+
+        .mui-scroll-container {
+            /*padding-top: 10px;
+             padding-bottom: 15px;
+             position: relative;
+             border-bottom: 1px #dedede solid;
+             border-top: 1px #dedede solid;
+             background-color: white;
+             margin-top: 5px;*/
+        }
+
+        .mui-scroll-container div {
+            position: absolute;
+            text-align: center;
+            top: 50%;
+            padding: 2px;
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            -o-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+
+        .mui-scroll-container h5 {
+            padding-left: 10px;
+            padding-top: 5px;
+            color: black
+        }
+
+        .mui-scroll-container-split {
+            position: absolute;
+            width: 1px;
+            border-left: 1px #dedede solid;
+            margin-bottom: 5px;
+            height: 90%;
+            left: 62%;
+            margin-left: 20px;
+        }
+
+        /*已检查*/
+        .tunnel-state-finish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #64d441;
+        }
+
+        /*未检查*/
+        .tunnel-state-unfinish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: #ffffff;
+            background-color: #eb7171;
+        }
+
+        /*检查中*/
+        .tunnel-state-checking {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #4891ff;
+        }
+
+        .mui-scroll-container img {
+            width: 18px;
+            height: 18px;
+            margin-left: 2px;
+        }
+
+        .mui-scroll-container span {
+            font-size: 14px;
+            margin-left: 4px;
+            margin-top: 3px;
+            margin-right: 2px;
+        }
+
+        .mui-slider-item-other {
+            white-space: inherit;
+            height: auto;
+        }
+
+        .arrow-img {
+            width: 18px;
+            -webkit-transform: rotate(-90deg);
+            right: 0;
+            margin-right: 10px;
+            position: absolute;
+        }
+
+    </style>
+</head>
+<body>
+<div class="mui-content">
+
+    <ul class="mui-table-view " style="width: 100%;margin-top: 0px">
+
+    </ul>
+
+</div>
+
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/scan.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript" src="../../../script/cache.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript">
+    mui.init();
+    apiready = function () {
+
+        fnInitDB();
+        loadData();
+        setLisenter();
+    };
+    var lstData;
+    function loadData() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '获取数据中...',
+            modal: true
+        });
+        var json = queryCheckTaskVindicateLyxf({
+            itemName: api.pageParam.name,
+            dpId: api.pageParam.dpId,
+            type: api.pageParam.type,
+            itemType: api.pageParam.itemType
+        });
+        if (json.success) {
+            lstData = new Array;
+            var num = 0;
+            $.each(json.data, function (i, data) {
+                var index = isContainComponent(data.componentName);
+                if (index != -1) {
+                    lstData[index].data.push(data);
+                } else {
+                    lstData[num++] = {
+                        name: data.componentName,
+                        data: new Array
+                    };
+                    lstData[num - 1].data.push(data);
+                }
+            });
+            loadTopHtml();
+        } else {
+            api.toast({
+                msg: json.errorMsg,
+                duration: 2000,
+                location: 'bottom'
+            });
+        }
+
+        api.hideProgress();
+    }
+    function isContainComponent(componentName) {
+        for (var i = 0; i < lstData.length; i++) {
+            if (lstData[i].name == componentName) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    //当前界面是构件还是功能位置
+    var isComponent;
+    function loadTopHtml() {
+        isComponent = true;
+        var html = "";
+        $.each(lstData, function (i, data) {
+            html += '<li class="mui-table-view-cell mui-media"> <div class="mui-media-body mui-scroll-container" onclick="loadHtml(' + i + ')"> <h4 style="width: 200px">' + data.name + ' <img src="../../../image/down_arrow.png" class="arrow-img"> </h4> </div> </li>';
+        });
+        $('.mui-table-view').html(html);
+    }
+
+    var currentPage = 0;
+    function loadHtml(index) {
+
+        isComponent = false;
+        currentPage = index;
+        var imgCount = 0;
+        var isFinish = true;
+        var isCode = lstData[index].data[0].isCode;
+        var lstTaskItems = lstData[index].data;
+        if (lstTaskItems != undefined && lstTaskItems.length > 0) {
+
+            var html = "";
+            var click = "";
+            var imgHtml = "";
+            $.each(lstTaskItems, function (i, taskItem) {
+                var stateHtml = "";
+                if (taskItem.status == 0) {
+                    isFinish = false;
+                    stateHtml += '<div class="tunnel-state-unfinish"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/non-finish.png" /><span >未检查</span></div>';
+                } else if (taskItem.status == 1) {
+                    isFinish = false;
+                    stateHtml += '<div class="tunnel-state-checking"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/checking.png" /><span>检查中</span></div>';
+                } else if (taskItem.status == 2) {
+                    stateHtml += '<div class="tunnel-state-finish"><img style="width: 18px;height: 18px;margin-left: 2px;" src="../../../image/finish.png" /><span>已检查</span></div>';
+                }
+                click = "fnTaskDetailList(" + index + "," + api.pageParam.type + "," + i + ")";
+                imgHtml = "";
+                if (taskItem.photos != undefined && taskItem.photos.length > 0) {
+                    imgCount++;
+                    if (taskItem.photos[0].indexOf('annexdownload') != -1) {
+                        var gmms_url = $api.getStorage('gmms_url');
+                        $.each(taskItem.photos, function (i, photo) {
+                            taskItem.photos[i] = gmms_url + photo;
+                        });
+                        cacheImages(taskItem.photos, "img" + imgCount, 'src', 0, true);
+                        imgHtml = ' <img id="img' + imgCount + '" style="height:50px;width: 20%" class=" mui-pull-left" src="../../../image/loadingImg.png">';
+                    } else {
+                        imgHtml = ' <img onclick="fnShowImg(' + i + ')" id="img' + imgCount + '" style="height:50px;width: 20%" class=" mui-pull-left" src="' + taskItem.photos[0] + '">';
+                    }
+                }
+                html += '<li class="mui-table-view-cell mui-media">' + imgHtml + ' <div class="mui-media-body mui-scroll-container" onclick="' + click + '">' + stateHtml + '<h5 >' + taskItem.name + '</h5><h5 >' + taskItem.itemName + '</h5></div> </li>';
+            });
+            $('.mui-table-view').html(html);
+
+        } else {
+            $('.mui-table-view').html("");
+        }
+        if (isCode == false && isFinish == false && api.pageParam.dpId == undefined) {
+            //在名为winName的window中执行jsfun脚本
+            api.execScript({
+                name: 'check-task',
+                script: "showBatchAbnormal()"
+            });
+        } else {
+            api.execScript({
+                name: 'check-task',
+                script: "hideBatchAbnormal()"
+            });
+        }
+
+    }
+    function fnShowImg(index) {
+        var imageBrowser = api.require('imageBrowser');
+        imageBrowser.openImages({
+            showList: false,
+            activeIndex: 0,
+            tapClose: true,
+            imageUrls: lstData[currentPage].data[index].photos
+        });
+    }
+
+    function setLisenter() {
+        api.addEventListener({
+            name: 'jdChecking'
+        }, function (ret, err) {
+            updateStatus(ret);
+        });
+
+    }
+    //更新状态
+    function updateStatus(ret) {
+        if (ret != undefined) {
+            var isChild = false;
+            if (api.pageParam.dpId != undefined) {
+                isChild = true;
+            }
+
+            var isFinish = true;
+            var dpId = ret.value.dpId;
+            var status = ret.value.status;
+            $.each(lstData, function (i, data) {
+                $.each(data.data, function (i, item) {
+                    if (item.dpId == dpId) {
+                        item.status = status;
+                        if (ret.value.imgArray != undefined) {
+                            item.photos = ret.value.imgArray;
+                        }
+                    }
+                    if (item.status != 2) {
+                        isFinish = false;
+                    }
+                });
+            });
+            if (isChild) {
+                api.removeEventListener({
+                    name: 'jdChecking'
+                });
+                api.sendEvent({
+                    name: 'jdChecking',
+                    extra: {
+                        dpId: api.pageParam.dpId,
+                        status: isFinish ? 2 : 1
+                    }
+                });
+                api.addEventListener({
+                    name: 'jdChecking'
+                }, function (ret, err) {
+                    updateStatus(ret);
+                });
+            }
+            api.sendEvent({
+                name: 'jdItemChecking',
+                extra:{
+                    itemName: api.pageParam.name
+                }
+            });
+        }
+        statusSort(lstData[currentPage].data);
+        loadHtml(currentPage);
+    }
+
+    function showImg(array) {
+        var imageBrowser = api.require('imageBrowser');
+        imageBrowser.openImages({
+            showList: false,
+            activeIndex: 0,
+            tapClose: true,
+            imageUrls: array
+        });
+    }
+
+    //直接跳转到任务检查项目列表
+    function fnTaskDetailList(index, checkType, position) {
+        var lstTaskItems;
+        lstTaskItems = lstData[index].data;
+        var taskItem = lstTaskItems[position];
+        var arcgis = $api.getStorage('arcgis');
+        var distance = calculationDistance(taskItem.code, taskItem.tunnelBeginMile, taskItem.tunnelEndMile);
+        if (taskItem.isCode && taskItem.status != 2 && isHasParentChile(taskItem.dpId) == false) {
+            var data = {
+                taskItem: taskItem,
+                type: checkType
+            };
+            fnScan('lyxf-check', data, "widget://html/check/check-task-detail-content.html");
+        } else {
+
+            if (isHasChile(taskItem.dpId) == true) {
+                api.openWin({
+                    name: "check-task-child",
+                    url: "./check-task.html",
+                    reload: true,
+                    pageParam: {
+                        devicePlaceId: taskItem.dpId,
+                        type: checkType,
+                        name: taskItem.itemName,
+                        imgSrc: api.pageParam.imgSrc,
+                    },
+                    vScrollBarEnabled: false
+                });
+            } else {
+                api.openWin({
+                    name: 'check-task-detail-content',
+                    url: './check-task-detail-content.html',
+                    pageParam: {
+                        taskId: taskItem.taskId,
+                        devicePlaceId: taskItem.dpId,
+                        name: taskItem.name,
+                        componentName: taskItem.componentName,
+                        type: checkType,
+                        itemName: taskItem.itemName,
+                        imgSrc: api.pageParam.imgSrc,
+
+                    },
+                    vScrollBarEnabled: false,
+                });
+            }
+        }
+
+    }
+    //后退键按压事件
+    function backPressEvent() {
+        if (isComponent) {
+            api.closeWin();
+        } else {
+            loadTopHtml();
+            api.execScript({
+                name: 'check-task',
+                script: "hideBatchAbnormal()"
+            });
+        }
+    }
+    //将该构件下的所有功能位置批量正常
+    function syncAllDevicePlaceAbnormal() {
+        api.confirm({
+            title: '提示',
+            msg: '还未检查的功能位置全部正常,并上传全部异常事件？',
+            buttons: ['确定', '取消']
+        }, function (ret, err) {
+            if (ret.buttonIndex == 1) {
+                var lstTaskItems = lstData[currentPage].data;
+                $.each(lstTaskItems, function (i, tv) {
+
+                    if (tv.status != 2) {
+                        tv.status=2;
+                        var json = syncAllTunnelEventNormal({
+                            dpId: tv.dpId,
+                            taskId: tv.taskId,
+                            userId: $api.getStorage('user').id,
+                            type: api.pageParam.type,
+                        }, {
+                            tvPhotos: new Array
+                        });
+                    }
+                });
+                api.sendEvent({
+                    name: 'jdItemChecking',
+                    extra:{
+                        itemName: api.pageParam.name
+                    }
+                });
+                api.toast({
+                    msg: '保存成功。',
+                    duration: 1000,
+                });
+                statusSort(lstData[currentPage].data);
+                loadHtml(currentPage);
+                window.setTimeout(function () {
+                    backPressEvent();
+                }, 500);
+            }
+
+        });
+
+    }
+
+</script>
+</html>

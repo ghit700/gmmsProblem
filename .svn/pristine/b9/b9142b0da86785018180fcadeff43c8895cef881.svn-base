@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>故障登记</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+
+        }
+
+        .circle-span-title-badge {
+            display: -webkit-box;
+            -webkit-box-pack: center;
+            -webkit-box-align: center;
+            text-align: center;
+            width: 30px;
+            height: 30px;
+            left: 15px;
+            background-color: #00cc66;
+        }
+
+        .circle-span-title-text {
+            margin-left: 35px;
+        }
+
+        .mui-input-row label {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<ul class="mui-table-view" style="margin-top: 10px">
+    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">1</span><span
+            class="circle-span-title-text">故障位置</span></li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label>所属区域</label>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label>所属系统</label>
+        </div>
+    </li>
+    <li class="mui-table-view-cell" style="padding: 15px">
+        <div class="mui-input-row">
+            <label>故障位置</label>
+        </div>
+    </li>
+</ul>
+<ul class="mui-table-view" style="margin-top: 10px">
+    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">2</span><span
+            class="circle-span-title-text">故障详情</span></li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label>问题描述(语音)</label>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label>问题描述(文字)</label>
+        </div>
+    </li>
+    <li class="mui-table-view-cell" style="padding: 15px">
+        <div class="mui-input-row">
+            <label>故障图片</label>
+        </div>
+    </li>
+    <li class="mui-table-view-cell" style="padding: 15px">
+        <div class="mui-input-row">
+            <label>故障视频</label>
+        </div>
+    </li>
+</ul>
+<ul class="mui-table-view" style="margin-top: 10px">
+    <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">3</span><span
+            class="circle-span-title-text">人员时间</span></li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label>发现人员</label>
+        </div>
+    </li>
+    <li class="mui-table-view-cell " style="padding: 15px">
+        <div class="mui-input-row">
+            <label>发现时间</label>
+        </div>
+    </li>
+</ul>
+<div style="margin-top: 10px;margin-bottom: 5px;margin-left: 25px;margin-right: 25px;">
+    <button type="button" class="mui-btn-primary mui-btn mui-btn-block">提交</button>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+
+    };
+</script>
+</html>

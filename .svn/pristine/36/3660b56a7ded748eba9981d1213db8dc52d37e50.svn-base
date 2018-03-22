@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,initial-scale=1.0,width=device-width"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>Hello APP</title>
+    <link rel="stylesheet" type="text/css" href="./css/api.css"/>
+    <style type="text/css">
+        html, body {
+            height: 100%;
+        }
+
+        #header h1 {
+            font-size: 20px;
+            height: 44px;
+            line-height: 44px;
+            margin: 0em;
+            color: #fff;
+        }
+
+        #footer h5 {
+            color: white;
+        }
+    </style>
+</head>
+<body></body>
+<script type="text/javascript" src="./script/api.js"></script>
+<script type="text/javascript" src="./script/push.js"></script>
+<script type="text/javascript" src="./script/http.js"></script>
+<script type="text/javascript" src="./script/db.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        //更新版本
+        fnOpenDatabase();
+        //初始化参数
+        var ret = fnSelectSync('SELECT * FROM ' + TB_service_addr);
+        if (ret.status && ret.data.length > 0) {
+            //服务器根路径
+            $api.setStorage("gmms_url", ret.data[0].server_addr);
+            //记住的账号
+            $api.setStorage("rember_name", ret.data[0].rember_name);
+            //arcgis服务地址
+            $api.setStorage("arcgis_url", ret.data[0].arcgis_addr);
+        } else {
+            $api.setStorage("gmms_url", "http://117.29.161.2:4881/gmms/");
+            //arcgis服务地址
+            $api.setStorage("arcgis_url", "http://117.29.161.2:4080/getgpsservice/location2Mile");
+        }
+        $api.rmStorage('peripherals');
+        //下载服务器时间
+        download("/modules/mobile/task/fire-task!sysnTime.action", {}, function (ret) {
+            $api.setStorage('systemTime', ret.time);
+            $api.setStorage('systemHour', ret.hour);
+            //清空蓝牙设备列表(每天清空一次)
+//            if ($api.getStorage('preTime') == undefined || $api.getStorage('preTime') < $api.getStorage('systemTime')) {
+//                if ($api.getStorage('preTime') != undefined) {
+//                    $api.rmStorage('peripherals');
+//                }
+//                $api.setStorage('preTime', $api.getStorage('systemTime'));
+//            }
+        }, function (err) {
+        });
+        var user = $api.getStorage("user");
+
+        //读取缓存的账号
+        if (user == "" || user == undefined || user == "undefined" || user.useunitId == undefined || user.authority == undefined) {
+            fnLogin();
+            //没有登录信息，就打开登录页面
+        } else {
+            fnMain();
+            //打开功能列表
+            pushListener();
+        }
+        //打开功能列表
+        //获取网络类型
+        fnGetConnectionType();
+        //监听网络
+        api.addEventListener({
+            name: 'online'
+        }, function (ret, err) {
+            $api.setStorage("online", 1);
+        });
+        api.addEventListener({
+            name: 'offline'
+        }, function (ret, err) {
+            $api.setStorage("online", 0);
+            //断网
+        });
+    };
+    //跳转登录
+    function fnLogin() {
+        api.openWin({
+            name: 'login',
+            url: './html/login/login.html',
+            rect: {
+                x: 0,
+                y: 0,
+                w: 'auto',
+                h: 'auto',
+                marginLeft: 0, //相对父 window 左外边距的距离
+                marginTop: 0, //相对父 window 上外边距的距离
+                marginBottom: 0, //相对父 window 下外边距的距离
+                marginRight: 0 //相对父 window 右外边距的距离
+            },
+            bounces: false,
+            bgColor: 'rgba(0,0,0,0)',
+            vScrollBarEnabled: true,
+            hScrollBarEnabled: true,
+            slidBackEnabled: false
+        });
+    }
+
+    //跳转主界面
+    function fnMain() {
+        api.openWin({
+            name: 'main',
+            url: './html/main.html',
+            rect: {
+                x: 0,
+                y: 0,
+                w: 'auto',
+                h: 'auto',
+                marginLeft: 0, //相对父 window 左外边距的距离
+                marginTop: 0, //相对父 window 上外边距的距离
+                marginBottom: 0, //相对父 window 下外边距的距离
+                marginRight: 0 //相对父 window 右外边距的距离
+            },
+            bounces: false,
+            bgColor: 'rgba(0,0,0,0)',
+            vScrollBarEnabled: true,
+            hScrollBarEnabled: true,
+            slidBackEnabled: false
+        });
+    }
+
+    //获取网络类型
+    function fnGetConnectionType() {
+        var ctype = api.connectionType;
+        if (ctype == 'unknown' || ctype == 'none') {
+            $api.setStorage("online", 0);
+            //断网
+        } else {
+            $api.setStorage("online", 3);
+        }
+        if (ctype.toLowerCase() == '2g' || ctype.toLowerCase() == '3g' || ctype.toLowerCase() == '4g')
+            $api.setStorage("online", 1);
+        if (ctype == 'wifi')
+            $api.setStorage("online", 2);
+    }
+</script>
+</html>

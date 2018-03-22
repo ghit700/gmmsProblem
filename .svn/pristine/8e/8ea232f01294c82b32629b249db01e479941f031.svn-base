@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/common.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+    <style>
+        body {
+        }
+
+        .egret-img {
+            position: absolute;
+        }
+
+        .egret-right {
+            position: absolute;
+            right: 1px;
+            height: 25px;
+            width: 25px;
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        img {
+            height: 25px;
+            width: 25px;
+            padding: 10px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+<div id="header">
+    <div class='egret-img event-back' onclick="pressBack()">
+        <img src="../../../image/back_btn.png" alt=""/>
+    </div>
+    <img id="btnRight" class="egret-right" style="display:none" src="../../../image/header-finish.png"
+         onclick="syncAllDevicePlaceAbnormal()"/>
+
+    <h1></h1>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    apiready = function () {
+        fnReadyHeader();
+        $('h1').html(api.pageParam.name);
+        switch (api.pageParam.type) {
+            case 1 :
+                $('h1').append('(年检查)');
+                break;
+            case 2 :
+                $('h1').append('(季检查)');
+                break;
+            case 3 :
+                $('h1').append('(月检查)');
+                break;
+            case 4 :
+                $('h1').append('(周检查)');
+                break;
+            case 5 :
+                $('h1').append('(日检查)');
+                break;
+            case 0 :
+                $('h1').append('(夜间检查)');
+                break;
+        }
+        api.openFrame({
+            name: api.winName + "frame",
+            url: './check-task-detail.html',
+            rect: {
+                x: 0,
+                y: getHeaderHeight(),
+                w: 'auto',
+                h: 'auto'
+            },
+            reload: true,
+            vScrollBarEnabled: false,
+            pageParam: {
+                roadLineId: api.pageParam.roadLineId,
+                type: api.pageParam.type,
+                dpId: api.pageParam.devicePlaceId,
+                name: api.pageParam.name,
+                imgSrc: api.pageParam.imgSrc,
+                itemType: api.pageParam.itemType
+            }
+        });
+        api.addEventListener({
+            name: 'keyback'
+        }, function (ret, err) {
+            pressBack();
+        });
+    };
+
+    function pressBack() {
+        //在名为winName的window中执行jsfun脚本
+        api.execScript({
+            frameName: api.winName + "frame",
+            script: 'backPressEvent();'
+        });
+
+    }
+    //显示批量正常按钮
+    function showBatchAbnormal() {
+        $('#btnRight').show();
+    }
+    //显示批量正常按钮
+    function hideBatchAbnormal() {
+        $('#btnRight').hide();
+    }
+    //将该构件下的所有功能位置批量正常
+    function syncAllDevicePlaceAbnormal() {
+        api.execScript({
+            frameName: api.winName + "frame",
+            script: "syncAllDevicePlaceAbnormal();"
+        });
+    }
+
+</script>
+</html>

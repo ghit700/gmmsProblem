@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>录音</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <header id="header" class="mui-bar mui-bar-nav mui-header" style="background-color: white">
+        <a class="mui-action-back  mui-pull-left" style="margin-top: 10px; " onclick="closeFrame()">取消</a>
+    </header>
+    <div id="mic" class="mui-content" style="background-color: white;margin-top: 10px">
+        <div v-bind:style="{display:status==1?'':'none'}" id="bottomContainer">
+            <div style="text-align: center">点击录音</div>
+            <img onclick="fnAudioRecord()" id="start"
+                 style="width: 50px;height: 50px; " src="../../../image/audio01.png"/>
+        </div>
+        <div v-bind:style="{display:status==2?'':'none'}">
+            <div style="text-align: center">{{duration}}</div>
+            <img onclick="stopAudioRecord()" id="end"
+                 style="width: 50px;height: 50px;" src="../../../image/audio02.png"/>
+        </div>
+        <!--<div  v-bind:style="{display:status==3?'':'none'}">-->
+            <!--<div style="text-align: center">{{duration}}</div>-->
+            <!--<img src="../../../image/play.png" id="playBtn" style="width: 50px;" onclick="fnPlayAudio()"-->
+                 <!--v-bind:src="play?'../../../image/stop.png':'../../../image/play.png'">-->
+            <!--<div>-->
+                <!--<div class="mui-segmented-control" style="width:auto;">-->
+                    <!--<a class="mui-control-item" onclick="cancle()">-->
+                        <!--取消-->
+                    <!--</a>-->
+                    <!--<a class="mui-control-item " onclick="save()">-->
+                        <!--保存-->
+                    <!--</a>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/vue.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    var micModel;
+    var audioTimer;
+    var speechRecognizer;
+    var audioPath = "";
+    var mp3Path = "";
+    var fs = null;
+    var wordStr;
+    apiready = function () {
+
+        micModel = new Vue({
+            el: '#mic',
+            created: function () {
+                $('#start').css('margin-left', (api.winWidth / 2) - $('#start').width() / 2);
+                $('#end').css('margin-left', (api.winWidth / 2) - $('#end').width() / 2);
+                $('#playBtn').css('margin-left', (api.winWidth / 2) - $('#playBtn').width() / 2);
+                $('.mui-control-item').css('margin-left', (api.winWidth / 2) - $('.mui-control-item').width());
+                speechRecognizer = api.require('speechRecognizer');
+                fs = api.require('fs');
+                var h = $('#header').height() + $('#bottomContainer').height() + 20;
+                api.setFrameAttr({
+                    name: api.frameName,
+                    rect: {
+                        x: 0,
+                        y: api.winHeight - h,
+                        w: 'auto',
+                        h: h
+                    },
+                    bounces: true,
+                    bgColor: 'bgcolor',
+                    vScrollBarEnabled: true,
+                    hScrollBarEnabled: true
+                });
+            },
+            data: {
+                status: 1,
+                play: false,
+                duration: '00:00'
+            }
+        });
+    };
+    /**
+     * 显示录音窗口
+     */
+    function showAudioStatus() {
+        var sec = 0;
+        var min = 0;
+        audioTimer = window.setInterval(function () {
+            var secStr;
+            var minStr;
+            sec++;
+            if (sec % 60 == 0)
+                sec = 0;
+            if (sec < 10) {
+                secStr = "0" + sec;
+            }
+            else {
+                secStr = sec;
+            }
+            if (sec % 60 == 0)
+                min++;
+            if (min < 10)
+                minStr = "0" + min;
+            else
+                minStr = min;
+            micModel.duration = minStr + ":" + secStr;
+        }, 1000);
+    }
+    function hideAudioStatus() {
+        if (audioTimer != undefined) {
+            window.clearInterval(audioTimer);
+        }
+    }
+
+    function fnAudioRecord() {
+        var ctype = api.connectionType;
+        if (ctype.toLowerCase() == 'unknown' || ctype.toLowerCase() == 'none') {
+            api.alert({msg: '请保持网络畅通!'});
+            return;
+        }
+        micModel.status = 2;
+        showAudioStatus();
+        speechRecognizer.showRecordHUD();
+        var date = new Date();
+        if (api.systemType.toLowerCase() == 'ios') {
+            audioPath = 'fs://gmmsProblem/' + date.getTime() + '.pcm';
+        } else {
+            audioPath = 'fs://gmmsProblem/' + date.getTime() + '.mp3';
+        }
+        speechRecognizer.record({
+            rate: 16000,
+            asrptt: 1,
+            audioPath: audioPath
+        }, function (ret, err) {
+            if (ret.status) {
+                wordStr = ret.wordStr;
+                if (api.systemType.toLowerCase() == 'ios') {
+                    if (ret.eventType == 'recognize_end') {
+                        hideAudioStatus();
+                        speechRecognizer.hideRecordHUD();
+                        duration = micModel.duration;
+                        save();
+                    }
+                } else {
+                    hideAudioStatus();
+                    speechRecognizer.hideRecordHUD();
+                    micModel.status = 3;
+                    save();
+                    api.hideProgress();
+                }
+            } else {
+                api.alert({msg: '识别失败,您可能没有说话哦,请重试!'});
+                hideAudioStatus();
+                micModel.status = 1;
+                api.hideProgress();
+
+            }
+        });
+    }
+    function stopAudioRecord() {
+        hideAudioStatus();
+        speechRecognizer.stopRecord();
+        speechRecognizer.hideRecordHUD();
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '稍等',
+            text: '音频处理中...',
+            modal: false
+        });
+    }
+
+    /**
+     * 播放录音
+     */
+    function fnPlayAudio() {
+        if (!micModel.play) {
+            micModel.play = true;
+            showAudioStatus();
+            api.toast({
+                msg: '正在播放',
+                duration: 1000,
+                location: 'middle'
+            });
+            api.startPlay({
+                path: audioPath
+            }, function (ret, err) {
+                hideAudioStatus();
+                if (ret) {
+                    api.toast({
+                        msg: '播放完成',
+                        duration: 1000,
+                        location: 'middle'
+                    });
+                    micModel.play = false;
+                } else {
+                    alert(JSON.stringify(err));
+                }
+            });
+        } else {
+            hideAudioStatus();
+            micModel.play = false;
+            api.stopPlay();
+        }
+    }
+    //取消保存录音
+    function cancle() {
+        var filePath = api.systemType.toLowerCase() == 'ios' ? mp3Path : audioPath;
+        fs.remove({
+            path: filePath
+        }, function (ret, err) {
+            api.toast({
+                msg: '删除录音文件成功',
+                duration: 2000,
+                location: 'bottom'
+            });
+        });
+        closeFrame();
+
+    }
+    //保存录音
+    function save() {
+        if (wordStr != undefined && wordStr != '') {
+            api.execScript({
+                name: 'problem-register-win',
+                frameName: 'problem-register',
+                script: 'micWordStr("' + wordStr + '");'
+            });
+            api.toast({
+                msg: '语音转化成功',
+                duration: 2000,
+                location: 'bottom'
+            });
+            fs.remove({
+                path:audioPath
+            },function (ret,err) {
+                closeFrame();
+            });
+        } else {
+            micModel.duration='00:00';
+            micModel.status = 1;
+            alert('请录音');
+        }
+
+    }
+    function closeFrame() {
+        api.closeFrame({
+            name: api.frameName
+        });
+    }
+</script>
+</html>

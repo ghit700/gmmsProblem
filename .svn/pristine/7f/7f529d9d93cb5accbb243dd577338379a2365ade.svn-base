@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../../css/aui.css"/>
+    <style>
+    	#left,#right {
+            background-color: #ffffff;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+		    overflow-x: hidden;
+		    word-break: break-all;
+        }
+        #right {
+            background-color: transparent;
+        }
+        .aui-list-item.aui-active {
+            background-color: #b6dffd;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+	<div class="aui-content">
+        <div class="aui-row">
+            <div class="aui-col-xs-5 aui-border-r" id="left" style="padding-right: 0.1rem;">
+                <ul class="aui-list aui-list-noborder aui-margin-b-0" id="leftTab">
+                    <!--<li data-id="1" class="aui-list-item aui-active">
+                        <div class="aui-list-item-inner">
+                            Item3
+                        </div>
+                    </li>
+                    <li data-id="2" class="aui-list-item">
+                        <div class="aui-list-item-inner">
+                            Item3
+                        </div>
+                    </li>-->
+                </ul>
+            </div>
+            <div class="aui-col-xs-7" id="right">
+            	<ul class="aui-list aui-list-in" id="device_place_list">
+					<!--<li class="aui-list-item" tapmode>
+		                <div class="aui-list-item-inner">
+		                    <div class="aui-list-item-title">张三</div>
+		                    <div class="aui-list-item-right">
+		                        <input type="checkbox" name="checkbox_userNames" value="11" class="aui-checkbox"/>
+		                    </div>
+		                </div>
+		            </li>
+		            <li class="aui-list-item" tapmode>
+		                <div class="aui-list-item-inner">
+		                    <div class="aui-list-item-title">张三</div>
+		                    <div class="aui-list-item-right">
+		                        <input type="checkbox" name="checkbox_userNames" value="11" class="aui-checkbox"/>
+		                    </div>
+		                </div>
+		            </li>-->
+				</ul>
+            </div>
+        </div>
+    </div>
+</body>
+<script id="left_list_Temp" type="text/template">
+{{~it:data}}
+	<li class="aui-list-item" tapmode onclick="fnQueryDevicePlace({{=data.id}},this)"><!--aui-active-->
+        <div class="aui-list-item-inner">{{=data.componentName}}</div>
+    </li>
+{{~}}	
+</script>
+<script id="right_list_Temp" type="text/template">
+{{~it:data}}
+	<li class="aui-list-item" tapmode>
+        <div class="aui-list-item-inner">
+            <div class="aui-list-item-title">{{=data.devicePlaceName}}</div>
+            <div class="aui-list-item-right">
+                <input type="checkbox" name="checkbox_devicePlaces" value="{{=data.id}}" field="{{=data.devicePlaceName}}" class="aui-checkbox"/>
+            </div>
+        </div>
+    </li>
+{{~}}
+</script>
+<script type="text/javascript" src="../../../../script/api.js"></script>
+<script type="text/javascript" src="../../../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../../script/doT.min.js"></script>
+<script type="text/javascript">
+	var IsPush = false;
+    var serverUrl = null;
+    var cur_user = null; 
+    var leftDoTxt = null,rightDoTxt = null;
+	var toast = new auiToast();
+	document.getElementById("left").style.height = window.innerHeight+"px";
+    document.getElementById("right").style.height = window.innerHeight+"px";
+	apiready = function(){
+		serverUrl = $api.getStorage("gmms_url");
+        cur_user = $api.getStorage("user");
+        leftDoTxt = doT.template($('#left_list_Temp').html());
+        rightDoTxt = doT.template($('#right_list_Temp').html());
+		window.setTimeout(function(){
+			fnQueryComponentList(false);
+		},300);	
+		
+		$('#device_place_list').on('click','li',function(){
+			if(!$(this).find("input").is(":checked")){
+    			$(this).find("input").prop("checked",true);
+    		}else{
+    			$(this).find("input").prop("checked",false);
+    		}
+    	});
+        api.parseTapmode();
+	};
+	
+	function fnQueryComponentList(refresh){
+		if(IsPush){return;}
+		IsPush = true;
+    	if(!refresh){
+    		toast.loading({
+	            title:"加载中...",
+	            duration:2000
+	        });
+    	}
+		api.ajax({
+            url: serverUrl + '/modules/mobile/defect/fault-repair-rbi!queryComponentByItem.action',
+            method: 'GET',
+            timeout: 10,
+            data: {
+                values: {
+                	itemId: api.pageParam.itemId,
+                    lesseeId: cur_user.lesseeId
+                }
+            }
+        }, function(ret, err) {
+            if (ret) {
+            	$api.setStorage('CUR_COMPONENT',ret);
+                $('#leftTab').html(leftDoTxt(ret));
+                api.parseTapmode();
+            } else {
+                api.toast({
+                    msg: '请求错误或超时'
+                });
+            }
+            if (refresh) {
+                api.refreshHeaderLoadDone();
+            }else{
+            	toast.hide();
+            }
+            IsPush = false;
+        });
+	}
+	
+	function fnQueryDevicePlace(comId,_this){
+		$('#leftTab li').removeClass('aui-active');
+		$(_this).toggleClass('aui-active');
+		if(IsPush){return;}
+		IsPush = true;
+		toast.loading({
+            title:"加载中...",
+            duration:2000
+        });
+        api.ajax({
+            url: serverUrl + '/modules/mobile/defect/fault-repair-rbi!queryDevicePlace.action',
+            method: 'GET',
+            timeout: 10,
+            data: {
+                values: {
+                    itemId: api.pageParam.itemId,
+                    componentId: comId,
+                    lesseeId: cur_user.lesseeId
+                }
+            }
+        }, function(ret, err) {
+            if (ret) {
+                $('#device_place_list').html(rightDoTxt(ret));
+                api.parseTapmode();
+            } else {
+                api.toast({
+                    msg: '请求错误或超时'
+                });
+            }
+           	toast.hide();
+            IsPush = false;
+        });
+	}
+	
+	function fnSelDevicePlaces(){
+		var dpIds = '';
+		var dpNames = '';
+		$("input[name='checkbox_devicePlaces']:checked").each(function(){
+			dpIds += ','+$(this).val();
+			dpNames += ','+$(this).attr('field');
+			
+		});
+		if (dpIds!='') {
+			api.execScript({
+				name: api.pageParam.winName,
+				frameName: api.pageParam.frameName,
+	            script: "fnSetDevicePlaces('"+dpIds.substring(1)+"','"+dpNames.substring(1)+"');"
+            });
+            api.closeToWin({
+	            name: api.pageParam.winName
+            });
+		} else {
+			dialog.alert({
+                title:"提示",
+                msg:'你未选择任何项',
+                buttons:['确定']
+            });
+		}
+	}
+</script>
+</html>

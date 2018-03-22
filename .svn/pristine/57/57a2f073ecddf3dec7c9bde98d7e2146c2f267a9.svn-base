@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no"/>
+    <link rel="stylesheet" type="text/css" href="../../../../css/aui.css"/>
+    <style>
+    	
+    </style>
+</head>
+<body>
+	<div class="aui-content aui-margin-b-15">
+		<ul class="aui-list aui-list-in" id="user_list">
+			<!--<li class="aui-list-item" tapmode>
+				<div class="aui-list-item-label-icon">
+                    <i class="aui-iconfont aui-icon-my"></i>
+                </div>
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title">张三</div>
+                    <div class="aui-list-item-right">
+                        <input type="checkbox" name="checkbox_userNames" value="11" class="aui-checkbox"/>
+                    </div>
+                </div>
+            </li>-->
+		</ul>
+	</div>
+</body>
+<script id="user_list_Temp" type="text/template">
+{{~it:data}}
+<li class="aui-list-item" tapmode>
+	<div class="aui-list-item-label-icon">
+        <i class="aui-iconfont aui-icon-my"></i>
+    </div>
+    <div class="aui-list-item-inner">
+        <div class="aui-list-item-title">{{=data.name}}</div>
+        <div class="aui-list-item-right">
+            <input type="checkbox" name="checkbox_userNames" value="{{=data.id}}" field="{{=data.name}}" class="aui-checkbox"/>
+        </div>
+    </div>
+</li>
+{{~}}
+</script>
+<script type="text/javascript" src="../../../../script/api.js"></script>
+<script type="text/javascript" src="../../../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../../../script/aui-dialog.js"></script>
+<script type="text/javascript" src="../../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../../script/doT.min.js"></script>
+<script type="text/javascript">
+	var dotTxt = null;
+	var IsPush = true;
+    var serverUrl = null;
+    var cur_user = null; 
+    var toast = new auiToast();
+    var dialog = new auiDialog();
+	apiready = function(){
+		serverUrl = $api.getStorage("gmms_url");
+        cur_user = $api.getStorage("user");
+        dotTxt = doT.template($('#user_list_Temp').html());
+		$('#user_list').on('click','li',function(){
+			if(!$(this).find("input").is(":checked")){
+    			$(this).find("input").prop("checked",true);
+    		}else{
+    			$(this).find("input").prop("checked",false);
+    		}
+    	});
+    	api.parseTapmode();
+    	fnInitPullDown(); //下拉刷新
+    	window.setTimeout(function(){
+    		fnQueryUsers(false);
+    	},300);
+	};
+	
+	function fnInitPullDown() {
+        api.setRefreshHeaderInfo({
+            bgColor: '#f5f5f5',
+            dropColor: '#9BA2AC'
+        }, function(ret, err) {
+            if (IsPush) {
+                api.refreshHeaderLoadDone();
+                return;
+            }
+            fnQueryUsers(true);
+        });
+    }
+    var cur_searchTxt = null;
+    function fnSetSearchTxt(txt){
+    	cur_searchTxt = txt;
+    }
+	
+	function fnQueryUsers(refresh){
+		IsPush = true;
+    	if(!refresh){
+    		toast.loading({
+	            title:"加载中...",
+	            duration:2000
+	        });
+    	}
+    	api.ajax({
+            url: serverUrl + '/modules/mobile/security/common!listUser.action',
+            method: 'GET',
+            timeout: 10,
+            data: {
+                values: {
+                    useunitId: api.pageParam.useunitId,
+                    searchTxt: cur_searchTxt
+                }
+            }
+        }, function(ret, err) {
+            if (ret) {
+                $('#user_list').html(dotTxt(ret));
+                api.parseTapmode();
+            } else {
+                api.toast({
+                    msg: '请求错误或超时'
+                });
+                $('#load_more').html('暂无数据');
+            }
+            if (refresh) {
+                api.refreshHeaderLoadDone();
+            }else{
+            	toast.hide();
+            }
+            IsPush = false;
+        });
+	}
+	
+	function fnSelUsers(){
+		var uids = '';
+		var unames = '';
+		$("input[name='checkbox_userNames']:checked").each(function(){
+			uids += ','+$(this).val();
+			unames += ','+$(this).attr('field');
+			
+		});
+		if (uids!='') {
+			api.execScript({
+				name: api.pageParam.winName,
+				frameName: api.pageParam.frameName,
+	            script: "fnSetUserInfo('"+uids.substring(1)+"','"+unames.substring(1)+"');"
+            });
+            api.closeToWin({
+	            name: api.pageParam.winName
+            });
+		} else {
+			dialog.alert({
+                title:"提示",
+                msg:'你未选择任何人',
+                buttons:['确定']
+            });
+		}
+	}
+</script>
+</html>

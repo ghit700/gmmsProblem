@@ -16,6 +16,20 @@ function post(relativeUrl, param, success, errFun) {
         api.hideProgress();
     });
 }
+function postNone(relativeUrl, param, callback) {
+    api.ajax({
+        url: $api.getStorage('gmms_url') + relativeUrl,
+        method: 'post',
+        timeout: 20,
+        dataType: 'json',
+        returnAll: false,
+        data: {
+            values: param,
+        }
+    }, function (ret, err) {
+        callback(ret, err);
+    });
+}
 
 function upload(relativeUrl, param, files, success, errFun) {
     api.ajax({
@@ -48,7 +62,6 @@ function download(relativeUrl, param, success, errFun) {
 
     });
 }
-
 
 function dealMsg(ret, err, success, errFun) {
     if (ret != undefined && ret.success) {

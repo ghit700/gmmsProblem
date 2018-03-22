@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/api.css"/>
+    <style>
+        body {
+
+        }
+
+        .ui-select {
+            width: 100%;
+            background-color: white;
+            padding: 10px;
+            text-align: center;
+            border: rgb(211, 211, 211) solid 1px;
+        }
+
+        .ui-select:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-icon {
+            position: absolute
+        }
+
+        .chart {
+            height: 300px;
+            margin: 0px 0px;
+            padding: 0px 0px;
+        }
+
+        .chart-text {
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+<div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted">
+    <a class="mui-control-item mui-active" href="#day"> 日 </a>
+    <a class="mui-control-item " href="#week"> 周 </a>
+    <a class="mui-control-item " href="#month"> 月 </a>
+</div>
+<div id="day" class="mui-control-content mui-active" style="min-height: 500px">
+    <div class="mui-scroll-wrapper">
+        <div class="mui-scroll">
+            <div class="ui-select " tapmode="active" style="margin-bottom: 5px">
+                        <span style="left: 10px" class="mui-icon mui-icon-back"
+                              onclick="changeTime('day',false)"></span>
+                <span style="right: 10px" class="mui-icon mui-icon-forward"
+                      onclick="changeTime('day',true)"></span>
+                <span id="dayTime"></span>
+                <span id="dayTimeMinutes" style="display: none"></span>
+                <img style="milegin-left:5px;height: 14px">
+            </div>
+            <div id="dayChart" class="chart"></div>
+            <div id="dayText" class="chart-text"></div>
+        </div>
+    </div>
+</div>
+<div id="week" class="mui-control-content" style="height: 500px">
+    <div class="mui-scroll-wrapper">
+        <div class="mui-scroll">
+            <div class="ui-select " tapmode="active" style="margin-bottom: 5px">
+                <span style="left: 10px" class="mui-icon mui-icon-back"
+                      onclick="changeTime('week',false)"></span>
+                <span style="right: 10px" class="mui-icon mui-icon-forward"
+                      onclick="changeTime('week',true)"></span>
+                <span id="weekTime"></span>
+                <span id="weekTimeMinutes" style="display: none"></span>
+                <img style="milegin-left:5px;height: 14px">
+            </div>
+            <div id="weekChart" class="chart"></div>
+            <div id="weekText" class="chart-text"></div>
+        </div>
+    </div>
+</div>
+<div id="month" class="mui-control-content" style="height: 500px">
+    <div class="mui-scroll-wrapper">
+        <div class="mui-scroll">
+            <div class="ui-select " tapmode="active" style="margin-bottom: 5px">
+                        <span style="left: 10px" class="mui-icon mui-icon-back"
+                              onclick="changeTime('month',false)"></span>
+                <span style="right: 10px" class="mui-icon mui-icon-forward"
+                      onclick="changeTime('month',true)"></span>
+                <span id="monthTime"></span>
+                <span id="monthTimeMinutes" style="display: none"></span>
+                <img style="milegin-left:5px;height: 14px">
+            </div>
+            <div id="monthChart" class="chart"></div>
+            <div id="monthText" class="chart-text"></div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/echarts.min.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript">
+    var currentDate;
+    apiready = function () {
+        initTime();
+        $('.mui-control-item').on('tap', function () {
+            var id = $(this).attr('href');
+            if ($(id + "Time").html() == "") {
+                if (id == '#week') {
+                    var date = new Date();
+                    var distance = (currentDate.getDay() - 1) * 24 * 60 * 60 * 1000;
+                    date.setTime(currentDate.getTime() - distance);
+                    var tempDate = new Date();
+                    tempDate.setTime(date.getTime() + 6 * 24 * 60 * 60 * 1000);
+                    queryData(4, date.getTime(), 'week');
+                    $(id + "Time").html(date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日" + "~" +
+                        tempDate.getFullYear() + "年" + (tempDate.getMonth() + 1) + "月" + tempDate.getDate() + "日");
+                    $(id + "TimeMinutes").html(date.getTime());
+                } else {
+                    queryData(3, currentDate.getTime(), 'month');
+                    $(id + "Time").html(currentDate.getFullYear() + "年" + (currentDate.getMonth() + 1) + "月");
+                    $(id + "TimeMinutes").html(currentDate.getTime());
+                }
+
+            } else {
+                var type;
+                switch (id) {
+                    case '#day':
+                        type = 5;
+                        break;
+                    case '#week':
+                        type = 4;
+                        break;
+                    case '#month':
+                        type = 3;
+                        break;
+                }
+                queryData(type, Number($(id + "TimeMinutes").html()), type.replace("#", ""));
+
+            }
+        })
+    };
+    function initTime() {
+        currentDate = new Date();
+        $('#dayTime').html(currentDate.getFullYear() + "年" + (currentDate.getMonth() + 1) + "月" + currentDate.getDate() + "日");
+        $('#dayTimeMinutes').html(currentDate.getTime());
+        queryData(5, currentDate.getTime(), 'day');
+    }
+    function queryData(type, time, id) {
+        id = id.replace("#", "");
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '载入中...',
+            modal: true
+        });
+        post("/modules/mobile/task/fire-task!queryProblemRepairSituation.action", {
+            time: time,
+            userId: $api.getStorage('user').id,
+            type: type
+        }, function (ret) {
+            var option = {
+                series: {
+                    type: 'pie',
+                    radius: '55%',
+                    center: ['50%', '60%'],
+                    label: {
+                        normal: {
+                            position: 'inner'
+                        }
+                    }
+                }
+            };
+            var data = [];
+            var i = 0;
+            if (ret.unDealCount != 0) {
+                data[i++] = {
+                    value: ret.unDealCount,
+                    name: '未处理\n\n' + Number(ret.unDealCount / (ret.dealCount + ret.unDealCount) * 100).toFixed(2) + "%"
+                };
+            }
+            if (ret.dealCount != 0) {
+                data[i] = {
+                    value: ret.dealCount,
+                    name: '已处理\n\n' + Number(ret.dealCount / (ret.dealCount + ret.unDealCount) * 100).toFixed(2) + "%"
+                };
+            }
+            option.series.data = data;
+            var text;
+            if ((ret.dealCount + ret.unDealCount) == 0) {
+                switch (type) {
+                    case 5:
+                        text = '当天';
+                        break;
+                    case 4:
+                        text = '当周';
+                        break;
+                    case 3:
+                        text = '当月';
+                        break;
+                }
+                text += '没有登记故障。';
+                option = {
+                    series: [
+                        {
+                            type: 'pie',
+                            radius: ['50%', '70%'],
+                            avoidLabelOverlap: false,
+                            silent: true,
+                            label: {
+                                normal: {
+                                    show: true,
+                                    position: 'center',
+                                    textStyle: {
+                                        fontSize: '30',
+                                        fontWeight: 'bold'
+                                    }
+                                },
+                            },
+                            data: [
+                                {value: 335, name: '没有故障'}
+                            ]
+                        }
+                    ]
+                };
+            } else {
+                text = $('#'+id+"Time").html()+"共登记" + (ret.dealCount + ret.unDealCount) + "条故障，已处理" + ret.dealCount + "条故障，未处理"+ret.unDealCount+"条故障，处理完成率为" + Number(ret.dealCount / (ret.dealCount + ret.unDealCount) * 100).toFixed(2) + "%";
+            }
+            var chart = echarts.init(document.getElementById(id + 'Chart'));
+            chart.setOption(option, true);
+            $('#' + id + 'Text').html(text);
+            chart.on('click', function (param) {
+                if (ret.zoneIds.indexOf(',') >= 0) {
+                    var title = '养护区域';
+                    switch (type) {
+                        case 1 :
+                            title += '(年检查)';
+                            break;
+                        case 2 :
+                            title += '(季检查)';
+                            break;
+                        case 3 :
+                            title += '(月检查)';
+                            break;
+                        case 4 :
+                            title += '(周检查)';
+                            break;
+                        case 5 :
+                            title += '(日检查)';
+                            break;
+                        case 0 :
+                            title += '(夜间检查)';
+                            break;
+                    }
+                    fnHeaderWin(title, "report-content-zone", "/home/report/report-content-zone.html", {
+                        type: type,
+                        taskIds: ret.taskIds,
+                        request: 'problem'
+                    });
+                } else {
+                    var title = '路段';
+                    switch (api.pageParam.type) {
+                        case 1 :
+                            title += '(年检查)';
+                            break;
+                        case 2 :
+                            title += '(季检查)';
+                            break;
+                        case 3 :
+                            title += '(月检查)';
+                            break;
+                        case 4 :
+                            title += '(周检查)';
+                            break;
+                        case 5 :
+                            title += '(日检查)';
+                            break;
+                        case 0 :
+                            title += '(夜间检查)';
+                            break;
+                    }
+                    fnHeaderWin(title, "report-content-roadline", "/home/report/report-content-roadline.html", {
+                        type: type,
+                        taskIds: ret.taskIds,
+                        zoneId: ret.zoneIds,
+                        request: 'problem'
+                    });
+                }
+            });
+        });
+    }
+    function changeTime(timeType, add) {
+        var time = Number($('#' + timeType + "TimeMinutes").html());
+        var distanceTime;
+        var type;
+        switch (timeType) {
+            case 'day':
+                type = 5;
+                distanceTime = 24 * 60 * 60 * 1000;
+                break;
+            case 'week':
+                type = 4;
+                distanceTime = 7 * 24 * 60 * 60 * 1000;
+                break;
+            case 'month':
+                type = 3;
+                var tempDate = new Date();
+                tempDate.setTime(time);
+                if (add) {
+                    tempDate.setMonth(tempDate.getMonth() + 1);
+                    tempDate.setDate(2);
+                    distanceTime = tempDate.getTime() - time;
+                } else {
+                    tempDate.setMonth(tempDate.getMonth() - 1);
+                    tempDate.setDate(2);
+                    distanceTime = time-tempDate.getTime();
+                }
+                break;
+        }
+        if (add) {
+            if (distanceTime + time > currentDate.getTime()) {
+                return;
+            } else {
+                time += distanceTime;
+            }
+        } else {
+            time -= distanceTime;
+        }
+        var date = new Date();
+        date.setTime(time);
+        $('#' + timeType + "TimeMinutes").html(time);
+        switch (timeType) {
+            case 'day':
+                $('#dayTime').html(date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日");
+                break;
+            case 'week':
+                var tempDate = new Date();
+                tempDate.setTime(time + 6 * 24 * 60 * 60 * 1000);
+                $("#weekTime").html(date.getFullYear() + "年" + (date.getMonth() + 1) + "月" + date.getDate() + "日" + "~" +
+                    tempDate.getFullYear() + "年" + (tempDate.getMonth() + 1) + "月" + tempDate.getDate() + "日");
+                break;
+            case 'month':
+                $('#monthTime').html(date.getFullYear() + "年" + (date.getMonth() + 1) + "月");
+                break;
+        }
+        queryData(type, time, timeType);
+    }
+</script>
+</html>

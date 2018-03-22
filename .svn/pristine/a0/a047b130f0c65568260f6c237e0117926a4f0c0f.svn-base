@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/mui.min.css"/>
+    <style>
+        body {
+        }
+
+        .tunnel-name {
+            left: 1px;
+        }
+
+        .tunnel-orientation {
+            margin-left: 10px
+        }
+
+        .tunnel-mile {
+            position: absolute;
+            right: 1px;
+        }
+
+        /*未检查*/
+        .tunnel-state-unfinish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: #ffffff;
+            background-color: #eb7171;
+        }
+
+        /*检查中*/
+        .tunnel-state-checking {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #4891ff;
+        }
+
+        /*已检查*/
+        .tunnel-state-finish {
+            right: 5%;
+            display: -webkit-box; /* 老版本语法: Safari,  iOS, Android browser, older WebKit browsers.  */
+            display: -moz-box; /* 老版本语法: Firefox (buggy) */
+            display: -ms-flexbox; /* 混合版本语法: IE 10 */
+            display: -webkit-flex; /* 新版本语法： Chrome 21+ */
+            display: flex; /* 新版本语法： Opera 12.1, Firefox 22+ */
+            /*垂直居中*/
+            /*老版本语法*/
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            /*混合版本语法*/
+            -ms-flex-align: center;
+            /*新版本语法*/
+            -webkit-align-items: center;
+            align-items: center;
+            border-radius: 5px;
+            color: white;
+            background-color: #64d441;
+        }
+
+        .mui-scroll-container img {
+            width: 18px;
+            height: 18px;
+            margin-left: 2px;
+        }
+
+        .mui-scroll-container-state-span {
+            font-size: 14px;
+            margin-left: 4px;
+            margin-top: 3px;
+            margin-right: 2px;
+        }
+
+        .mui-card:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-control-content .mui-loading {
+            margin-top: 50px;
+        }
+
+        .mui-control-content {
+            min-height: 100px;
+        }
+
+        .mui-slider-fixed {
+            position: fixed;
+            top: 0;
+        }
+
+        .mui-scroll-container {
+            position: relative;
+            border-bottom: 1px #dedede solid;
+            border-top: 1px #dedede solid;
+            background-color: white;
+            margin-top: 5px;
+            padding-bottom: 10px;
+        }
+
+        .mui-scroll-container:active {
+            background-color: rgb(211, 211, 211)
+        }
+
+        .mui-scroll-container div {
+            position: absolute;
+            right: 15px;
+            border-radius: 5px;
+            text-align: center;
+            padding: 2px;
+            top: 50%;
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            -o-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+
+        .mui-scroll-container h4 {
+            font-size: 16px;
+            padding: 10px;
+        }
+
+        .mui-scroll-container h5 {
+            padding-left: 10px;
+            color: black
+        }
+
+        .mui-scroll-container-split {
+            position: absolute;
+            width: 1px;
+            border-left: 1px #dedede solid;
+            margin-bottom: 5px;
+            height: 90%;
+            left: 62%;
+            margin-left: 20px;
+        }
+
+        .submit-btn {
+            width: 70px;
+            height: 25px;
+            background-size: contain;
+            background: url(../../../image/btn-submit-non-press.png);
+        }
+
+        .submit-btn:active {
+            width: 150px;
+            height: 150px;
+            background-color: url(../../../image/btn-submit-press.png);
+        }
+
+        h4 {
+            margin-top: 13px;
+        }
+    </style>
+</head>
+<body>
+<div class="mui-content">
+    <div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted">
+        <!--<a class="mui-control-item mui-active" frameIndex="0"> A线 </a>-->
+        <!--<a class="mui-control-item" frameIndex="1"> B线 </a>-->
+        <!--<a class="mui-control-item" frameIndex="2"> 配电房 </a>-->
+    </div>
+    <div class="mui-scroll">
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="../../../script/api.js"></script>
+<script type="text/javascript" src="../../../script/mui.min.js"></script>
+<script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/common.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
+<script type="text/javascript" src="../../../script/db.js"></script>
+<script type="text/javascript">
+    var curFrameIndex;
+    apiready = function () {
+        fnInitDB();
+        initTab();
+        setLisenter();
+    };
+    var list;
+    var mile;
+    var code;
+    var currentItemType;
+    //获取任务
+    function loadTask(itemType) {
+        currentItemType = itemType;
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '努力加载中...',
+            modal: true
+        });
+        if (api.pageParam.type == 0 && $api.getStorage('systemHour') < 20) {
+            api.toast({
+                msg: '还未到指定时间，请在指定时间检查。',
+                duration: 2000,
+                location: 'bottom'
+            });
+        } else {
+            var json = queryCheckTaskLyxf({
+                roadId: api.pageParam.roadId,
+                type: api.pageParam.type,
+                itemType: itemType
+            });
+            if (json.success) {
+                list = json.data;
+                //初始化
+                showTaskList();
+            } else {
+                $('.mui-scroll').html("");
+                api.toast({
+                    msg: json.errorMsg,
+                    duration: 2000,
+                    location: 'bottom'
+                });
+            }
+        }
+        api.hideProgress();
+
+    }
+
+    //显示任务列表
+    function showTaskList() {
+        var html = "";
+        //加载数据
+        $.each(list, function (i, task) {
+            var stateHtml = "";
+            var mile = "";
+            var distance = "";
+            if (task.status == 0) {
+                stateHtml += '<div class="tunnel-state-unfinish "><img src="../../../image/non-finish.png" style="width: 18px"/><span class="mui-scroll-container-state-span">未检查</span></div>'
+            } else if (task.status == 1) {
+                stateHtml += '<div class="tunnel-state-checking "><img src="../../../image/checking.png" style="width: 18px" /><span class="mui-scroll-container-state-span">检查中</span></div>'
+            } else if (task.status == 2) {
+                stateHtml += '<div class="tunnel-state-finish "><img src="../../../image/finish.png" style="width: 18px" /><span class="mui-scroll-container-state-span">已检查</span></div>'
+            }
+            if ( task.distance == 'undefined' || task.distance == undefined) {
+                distance += '<h5>不在同一路段<h5>';
+            }else if(task.distance == '' ){
+                distance += '';
+
+            } else {
+                var text = '离当前位置' + task.distance + 'm';
+                if (task.distance > 1000) {
+                    text = '离当前位置' + Number(task.distance / 1000).toFixed(2) + 'km';
+                }
+                distance += '<h5>' + text + '<h5>';
+
+            }
+            var click = "fnTaskDetail(" + i + ")";
+            html += '<div class="mui-scroll-container"  tapmode="active" onclick="' + click + '">' + stateHtml + '<h4 >' + task.name + '</h4>' + distance + '</div>';
+        });
+        $('.mui-scroll').html(html);
+        api.parseTapmode();
+    }
+
+    //跳转到任务详情
+    function fnTaskDetail(position) {
+
+        api.openWin({
+            name: 'check-task',
+            url: './check-task.html',
+            bounces: false,
+            vScrollBarEnabled: false,
+            pageParam: {
+                type: api.pageParam.type,
+                itemName: list[position].itemName,
+                name: list[position].name,
+                itemType: curFrameIndex
+            }
+        });
+    }
+
+    //设置监听
+    function setLisenter() {
+        api.addEventListener({
+            name: 'jdItemChecking'
+        }, function (ret, err) {
+            var itemName = ret.value.itemName;
+            var status = queryTunnelStatus(itemName, api.pageParam.type, $api.getStorage('systemTime'));
+            $.each(list, function (i, item) {
+                if (item.name == itemName) {
+                    item.status = status;
+                }
+            });
+            distanceSort(list);
+            statusSort(list);
+            showTaskList();
+            api.sendEvent({
+                name: 'jdRoadChecking',
+                extra: {
+                    roadId: api.pageParam.roadId,
+                }
+            });
+        });
+    }
+    function initTab() {
+        var systemId = $api.getStorage('systemId');
+        var lstTabs = [];
+
+        var time = $api.getStorage('systemTime');
+        var sql = "select distinct b.treeName from " + TB_task_detail + " t ," + TB_task_master + " d, " +
+            TB_device_place + " q," + TB_task_vindicate + " p," + TB_road_line + " a," + TB_item + " b where t.startDate <=" + time + " and t.endDate>=" + time +
+            " and d.id=t.taskMasterId and d.frequencyUnit=" + api.pageParam.type + " and p.taskId=t.id and p.devicePlaceId=q.id and " +
+            "b.id=q.itemId and  a.id=q.roadLineId and a.treeCode like '%" + api.pageParam.roadId + "%'";
+        var ret = fnSelectSync(sql);
+        if (ret.status && ret.data.length > 0) {
+            $.each(ret.data, function (i, item) {
+                var isExits = false;
+                var treeName = item.treeName.split("->");
+                $.each(lstTabs, function (i, tab) {
+                    if (tab == treeName[1]) {
+                        isExits = true;
+                    }
+                });
+                if (!isExits) {
+                    lstTabs.push(treeName[1]);
+                }
+            });
+
+        }
+        var tabHtml = "";
+        $.each(lstTabs, function (i, tab) {
+            if (i == 0) {
+                curFrameIndex = tab;
+                loadTask(tab);
+                tabHtml += '<a class="mui-control-item mui-active" frameIndex="' + tab + '">' + tab + '</a>';
+            } else {
+                tabHtml += '<a class="mui-control-item " frameIndex="' + tab + '">' + tab + '</a>';
+            }
+        });
+        $('#segmentedControl').html(tabHtml);
+        $('.mui-control-item').on('tap', function () {
+            curFrameIndex = $(this).attr('frameIndex');
+            loadTask(curFrameIndex);
+        });
+
+    }
+
+</script>
+</html>
