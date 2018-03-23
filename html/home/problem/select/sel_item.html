@@ -94,6 +94,12 @@
                         script: 'fnsetItem("' + name + '",' + isSelect + ',' + itemId + ',"'+ekecType+'");'
                     });
                     if (isSelect) {
+                        api.showProgress({
+                            style: 'default',
+                            animationType: 'fade',
+                            title: '获取数据中...',
+                            modal: true
+                        });
                         post("/modules/mobile/maintain/zone-user!queryItemByItemParent.action", {
                             itemParentId: itemId
                         }, function (ret) {

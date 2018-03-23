@@ -124,7 +124,7 @@
             <!--<div class="aui-list-item-input ow-sel" ikey="" onclick="fnOpenList()" id="nodeActorName"></div>-->
             <!--</div>-->
             <select v-model="actorId">
-                <option>请选择下一处理人</option>
+                <option disabled="disabled">请选择下一处理人</option>
                 <option v-for="actor in lstActors" :value="actor.id">{{actor.name}}</option>
             </select>
         </li>
@@ -146,9 +146,9 @@
 </body>
 
 <script type="text/javascript" src="../../../script/api.js"></script>
-<script type="text/javascript" src="../../../script/http.js"></script>
 <script type="text/javascript" src="../../../script/vue.min.js"></script>
 <script type="text/javascript" src="../../../script/zepto.min.js"></script>
+<script type="text/javascript" src="../../../script/http.js"></script>
 <script type="text/javascript">
     var addProblemModel;
     apiready = function () {
@@ -188,14 +188,16 @@
         });
     };
     function fnSubmit() {
-        upload("/modules/mobile/defect/problem-deal!saveProblemSubmit.action",{
-            problem: api.pageParam.problem,
-            idea:addProblemModel.idea,
-            nodeId:addProblemModel.nodeId,
-            actorId:addProblemModel.actorId
-        }, api.pageParam.files,function (ret) {
+        var param = api.pageParam.problem;
+        param.nextActorId = addProblemModel.actorId;
+        param.nextNodeId = addProblemModel.nodeId;
+        param.idea = addProblemModel.idea;
+        alert(JSON.stringify(param));
+        upload("/modules/mobile/defect/problem-deal!saveProblemSubmit.action",
+            param
+            , api.pageParam.files, function (ret) {
 
-        })
+            });
     }
 </script>
 

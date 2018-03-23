@@ -49,7 +49,7 @@
     </style>
 </head>
 <body>
-<ul id="problem-place" class="mui-table-view" style="margin-top: 10px">
+<ul id="problem-place" class="mui-table-view" style="margin-top: 10px" v-cloak>
     <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">1</span><span
             class="circle-span-title-text">故障位置</span></li>
     <li class="mui-table-view-cell " style="padding: 15px">
@@ -90,23 +90,24 @@
     </li>
     <li class="mui-table-view-cell" style="padding: 15px" v-if="elecType=='E01'&&isEffect!=''">
         <div class="mui-input-row">
-            <label style="width:25%;padding-top: 3px">土建车道</label>
-            <div style="width: 73%">
+            <label style="padding-top: 10px">土建车道</label>
+            <div style="left: 35%;float: left;width: 65%">
                 <select class="mui-btn" v-model="controlgroupId"
-                        style="padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                        style="width:100%;padding: 0;margin: 0;float: left;font-size: 17px">
                     <option disabled value="">选择</option>
                     <option v-for="zone in lstZones" v-bind:value="zone.id">{{zone.name}}</option>
                 </select>
                 <select class="mui-btn" v-model="roadLineId"
-                        style="padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                        style="width:100%;padding: 0;margin: 0;float: left;font-size: 17px">
                     <option disabled value="">选择</option>
                     <option v-for="roadLine in lstRoadLine" v-bind:value="roadLine.id">{{roadLine.name}}</option>
                 </select>
                 <select class="mui-btn" v-model="laneId"
-                        style="padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                        style="width:100%;padding: 0;margin: 0;float: left;font-size: 17px">
                     <option disabled value="">选择</option>
                     <option v-for="lane in lstLanes" v-bind:value="lane.id">{{lane.name}}</option>
                 </select>
+
             </div>
 
         </div>
@@ -116,7 +117,7 @@
         <div class="mui-input-row">
             <label>车道性质</label>
             <select class="mui-btn" v-model="carriageWayId"
-                    style="width: auto;padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
+                    style="width: 65%;padding: 0;margin: 0;float: left;height: auto;font-size: 17px">
                 <option disabled value="">选择</option>
                 <option v-for="way in lstCarriageWay" v-bind:value="way.id">{{way.name}}</option>
             </select>
@@ -143,18 +144,10 @@
         </div>
     </li>
 </ul>
-<ul id="problem-desc" class="mui-table-view" style="margin-top: 10px">
+<ul id="problem-desc" class="mui-table-view" style="margin-top: 10px" v-cloak>
 
     <li class="mui-table-view-cell" style="padding: 15px"><span class="mui-badge circle-span-title-badge">2</span><span
             class="circle-span-title-text">故障详情</span></li>
-    <!--<li class="mui-table-view-cell " style="padding: 15px">-->
-    <!--<div class="mui-input-row">-->
-    <!--<label>问题描述(语音)</label>-->
-    <!--<div style="width: 64%" onclick="startRecord()">-->
-    <!--<span class="mui-icon mui-icon-mic" style="color: #3d3d3d"></span><span style="color: #3d3d3d">录音</span>-->
-    <!--</div>-->
-    <!--</div>-->
-    <!--</li>-->
     <li class="mui-table-view-cell " style="padding: 15px">
         <div class="mui-input-row">
             <label><label style="color: red;width: auto">*</label>问题描述</label>
@@ -288,7 +281,13 @@
         placeModel = new Vue({
             el: '#problem-place',
             created: function () {
-                postNone("/modules/mobile/maintain/zone-user!userZones.action", {
+                api.showProgress({
+                    style: 'default',
+                    animationType: 'fade',
+                    title: '获取数据中...',
+                    modal: true
+                });
+                post("/modules/mobile/maintain/zone-user!userZones.action", {
                     userId: $api.getStorage('user').id
                 }, function (ret, err) {
                     if (ret.success) {
@@ -344,6 +343,12 @@
             watch: {
                 zoneId: function (newQuestion, oldQuestion) {
                     if (newQuestion != oldQuestion && newQuestion != "") {
+                        clearEO1();
+                        clearEO2();
+                        placeModel.isInterboard = "";
+                        placeModel.isEffect = "";
+                        placeModel.itemId = "";
+                        placeModel.item = "";
                         api.execScript({
                             name: 'sel_item',
                             script: 'loadZoneId(' + newQuestion + ');'
@@ -371,22 +376,17 @@
                         clearEO2();
                     }
                 },
-                //选择车道
-                laneId: function (newQuestion, oldQuestion) {
-                    if (newQuestion != oldQuestion && newQuestion != "" && this.problemPlace == "") {
-                        console.log(newQuestion);
-                        $.each(this.lstLanes, function (i, lane) {
-                            if (lane.id == newQuestion) {
-                                this.problemPlace = lane.name;
-                            }
-                        });
-                    }
-                },
                 controlgroupId: function (newQuestion, oldQuestion) {
                     if (newQuestion != oldQuestion && newQuestion != "") {
                         placeModel.roadLineId = "";
                         placeModel.carriageWayId = "";
                         placeModel.laneId = "";
+                        api.showProgress({
+                            style: 'default',
+                            animationType: 'fade',
+                            title: '获取数据中...',
+                            modal: true
+                        });
                         post("/modules/mobile/maintain/zone-user!queryZonePlace.action", {
                             zoneId: newQuestion,
                             userId: $api.getStorage('user').id
@@ -402,6 +402,12 @@
                     if (newQuestion != oldQuestion && newQuestion != "") {
                         placeModel.carriageWayId = "";
                         placeModel.laneId = "";
+                        api.showProgress({
+                            style: 'default',
+                            animationType: 'fade',
+                            title: '获取数据中...',
+                            modal: true
+                        });
                         post("/modules/mobile/maintain/zone-user!queryLanes.action", {
                             userId: $api.getStorage('user').id,
                             roadLineId: newQuestion
@@ -417,6 +423,17 @@
                 laneId: function (newQuestion, oldQuestion) {
                     if (newQuestion != oldQuestion && newQuestion != "") {
                         placeModel.carriageWayId = "";
+                        $.each(placeModel.lstLanes, function (i, lane) {
+                            if (lane.id == newQuestion) {
+                                placeModel.problemPlace = lane.name;
+                            }
+                        });
+                        api.showProgress({
+                            style: 'default',
+                            animationType: 'fade',
+                            title: '获取数据中...',
+                            modal: true
+                        });
                         post("/modules/mobile/maintain/zone-user!querylaneLogic.action", {
                             userId: $api.getStorage('user').id,
                             laneId: newQuestion
@@ -623,6 +640,7 @@
                 w: 'auto',
                 h: 'auto'
             },
+            reload: true,
             animation: {
                 type: "movein",                //动画类型（详见动画类型常量）
                 subType: "from_bottom",
@@ -656,24 +674,24 @@
             return;
         }
         var problem = {
-            'zone.id': placeModel.zoneId,
-            'item.id': placeModel.itemId,
-            'place': placeModel.problemPlace,
-            'seriousGrade': descModel.seriousGrade,
-            'exigenceGrade': descModel.exigenceGrade,
-            'description': descModel.problemDesc,
-            'creator.id': $api.getStorage('user').id,
-            'createTime': peopleTimeModel.createTime,
+            'problem.zone.id': placeModel.zoneId,
+            'problem.item.id': placeModel.itemId,
+            'problem.place': placeModel.problemPlace,
+            'problem.seriousGrade': descModel.seriousGrade,
+            'problem.exigenceGrade': descModel.exigenceGrade,
+            'problem.description': descModel.problemDesc,
+            'problem.creator.id': $api.getStorage('user').id,
+            'problem.createTime': peopleTimeModel.createTime,
             'problem.discoverIds': peopleTimeModel.discoverUserId,
             'problem.discoverNames': peopleTimeModel.discoverUserName,
             'problem.discoverTime': peopleTimeModel.discoverTime,
-            'isEffect': placeModel.isEffect,
-            'isInterboard': placeModel.isInterboard,
-            'carriageType': placeModel.carriageWayId,
-            'devicePlace.id': placeModel.dpId,
-            'carriageWay.id': placeModel.laneId,
-            'isVidicon': placeModel.isInterboard == "" ? "" : placeModel.isInterboard,
-            "lesseeId": $api.getStorage('user').lesseeId
+            'problem.isEffect': placeModel.isEffect,
+            'problem.isInterboard': placeModel.isInterboard,
+            'problem.carriageType': placeModel.carriageWayId,
+            'problem.devicePlace.id': placeModel.dpId,
+            'problem.carriageWay.id': placeModel.laneId,
+            'problem.isVidicon': placeModel.isInterboard == "" ? "" : placeModel.isInterboard,
+            "problem.lesseeId": $api.getStorage('user').lesseeId
         };
         var files = {
             lstPhotos: descModel.lstPhotos,

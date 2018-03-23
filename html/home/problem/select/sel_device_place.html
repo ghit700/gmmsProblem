@@ -35,6 +35,12 @@
         dpModel = new Vue({
             el: '#dpContainer',
             created: function () {
+                api.showProgress({
+                    style: 'default',
+                    animationType: 'fade',
+                    title: '获取数据中...',
+                    modal: true
+                });
                 post("/modules/mobile/maintain/zone-user!selectSearchSingle.action", {
                     zoneId: api.pageParam.zoneId,
                     isInterboard: api.pageParam.isInterboard,
